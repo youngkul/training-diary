@@ -48,8 +48,15 @@ export async function getSession() {
 window.handleSignup = async function () {
   const email = document.getElementById("authEmail").value;
   const password = document.getElementById("authPassword").value;
-  await signup(email, password);
+
+  const result = await signup(email, password);
+
+  if (result) {
+    alert("회원가입이 완료되었습니다.\n입력하신 이메일로 전송된 인증 메일을 확인해주세요.");
+    // 이메일 인증이 필요하므로, 로그인 화면 그대로 유지
+  }
 };
+
 
 window.handleLogin = async function () {
   const email = document.getElementById("authEmail").value;
