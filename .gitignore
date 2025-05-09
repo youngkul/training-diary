@@ -1,1 +1,3 @@
 firebase-config.js
+.env
+*.env.js
