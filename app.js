@@ -18,12 +18,12 @@ window.uploadVideo = async function () {
   const userSnap = await getDoc(userRef);
   const name = userSnap.exists() ? userSnap.data().name : "익명";
 
-  // ✅ 1. Firebase Functions로 Signed URL 요청
+  // ✅ 1. Signed URL 요청
   const fileName = `${Date.now()}_${file.name}`;
   const signedUrlResponse = await fetch(`https://us-central1-training-video-b4935.cloudfunctions.net/getSignedUrl?fileName=${encodeURIComponent(fileName)}`);
   const { signedUrl, publicUrl } = await signedUrlResponse.json();
 
-  // ✅ 2. Wasabi에 실제 영상 업로드
+  // ✅ 2. Wasabi 업로드
   const uploadRes = await fetch(signedUrl, {
     method: "PUT",
     headers: { "Content-Type": file.type },
@@ -35,9 +35,14 @@ window.uploadVideo = async function () {
     return alert("영상 업로드 실패");
   }
 
-  // ✅ 3. Firestore에 메타데이터 저장
+  // ✅ 3. Cloudinary 썸네일 URL 생성
+  const cloudName = "dv3piizle";
+  const thumbnailUrl = `https://res.cloudinary.com/${cloudName}/video/upload/so_2/${encodeURIComponent(publicUrl)}.jpg`;
+
+  // ✅ 4. Firestore에 저장
   await addDoc(collection(db, "videos"), {
     url: publicUrl,
+    poster: thumbnailUrl,
     note,
     uid,
     name,
@@ -47,6 +52,7 @@ window.uploadVideo = async function () {
   alert("업로드 성공!");
   loadAllVideos();
 };
+
 
 
 // ✅ 영상 삭제
@@ -93,7 +99,7 @@ async function loadAllVideos() {
     videoDiv.innerHTML = `
       <div class="bg-white rounded-2xl shadow-lg p-5 space-y-4">
         <p class="text-sm text-gray-500">${video.name || "익명"}님이 ${timeAgo(video.created_at)}에 업로드했습니다</p>
-        <video src="${video.url}" controls class="w-full aspect-video rounded-xl shadow-lg border border-gray-200"></video>
+        <video src="${video.url}" poster="${video.poster}" controls class="w-full aspect-video rounded-xl shadow-lg border border-gray-200"></video>
         <p><strong>메모:</strong> <span id="note-${video.id}">${video.note || "없음"}</span></p>
         <input type="text" id="edit-note-${video.id}" placeholder="메모 수정" class="p-2 w-full border rounded" />
         <div class="flex gap-2 mt-2">
