@@ -78,6 +78,7 @@ window.handleLogin = async function () {
 window.handleLogout = async function () {
   await logout();
 };
+console.log("✅ auth.js loaded"); // 배포 확인용
 
   
 // force deploy
