@@ -1,7 +1,7 @@
 import { auth, db } from "./firebase-config.js";
 import { getSession } from "./auth.js";
 import {
-  collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, updateDoc
+  collection, addDoc, getDocs, deleteDoc, doc, getDoc, query, where, orderBy, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // ✅ 영상 업로드
