@@ -1,18 +1,10 @@
 // env.js
 export const firebaseConfig = {
-    apiKey: "당신의 apiKey",
-    authDomain: "당신의 authDomain",
-    projectId: "당신의 projectId",
-    storageBucket: "당신의 storageBucket",
-    messagingSenderId: "당신의 messagingSenderId",
-    appId: "당신의 appId"
+    apiKey: "AIzaSyDzLsuA0naaS5nD1NXvxN4Ep9DRKXbFaAA",
+    authDomain: "training-video-b4935.firebaseapp.com",
+    projectId: "training-video-b4935",
+    storageBucket: "training-video-b4935.appspot.com",
+    messagingSenderId: "1099229932660",
+    appId: "1:1099229932660:web:0c71995a5bd79b657c3521"
   };
-  import { firebaseConfig } from "./env.js";
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
   
-  const app = initializeApp(firebaseConfig);
-  export const auth = getAuth(app);
-  export const db = getFirestore(app);
-    
