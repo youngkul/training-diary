@@ -4,7 +4,7 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-aut
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCrI8s4zpZGrLX5XIT7Nl9v8zLDJ1FcozU",
+  apiKey: "AIzaSyDaue6N4DnXfiwFPgp8bd1-DJDEiwDLjLM",
   authDomain: "training-video-b4935.firebaseapp.com",
   projectId: "training-video-b4935",
   storageBucket: "training-video-b4935.appspot.com",
