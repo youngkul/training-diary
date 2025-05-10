@@ -141,10 +141,12 @@ window.postComment = async function (videoId) {
 
   const session = await getSession();
   const uid = session?.user?.uid;
+  const name = session?.user?.name || "익명";
 
   await addDoc(collection(db, "comments"), {
     video_id: videoId,
     uid,
+    name, // 추가
     content,
     created_at: new Date().toISOString()
   });
@@ -152,6 +154,7 @@ window.postComment = async function (videoId) {
   input.value = "";
   loadComments(videoId);
 };
+
 
 // ✅ 댓글 불러오기
 async function loadComments(videoId) {
@@ -169,7 +172,8 @@ async function loadComments(videoId) {
     div.classList.add("flex", "justify-between", "items-center");
 
     const p = document.createElement("p");
-    p.textContent = `- ${comment.content}`;
+    const displayName = comment.name || "익명";
+    p.textContent = `${displayName}: ${comment.content}`;
     div.appendChild(p);
 
     if (comment.uid === currentUid) {
@@ -183,6 +187,7 @@ async function loadComments(videoId) {
     container.appendChild(div);
   });
 }
+
 
 // ✅ 댓글 삭제
 window.deleteComment = async function (videoId, commentId) {
