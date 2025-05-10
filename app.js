@@ -99,7 +99,7 @@ async function loadAllVideos() {
     videoDiv.innerHTML = `
       <div class="bg-white rounded-2xl shadow-lg p-5 space-y-4">
         <p class="text-sm text-gray-500">${video.name || "익명"}님이 ${timeAgo(video.created_at)}에 업로드했습니다</p>
-        <video src="${video.url}" poster="${video.poster}" controls class="w-full aspect-video rounded-xl shadow-lg border border-gray-200"></video>
+        <video src="${video.url}" controls class="w-full aspect-video rounded-xl shadow-lg border border-gray-200"></video>
         <p><strong>메모:</strong> <span id="note-${video.id}">${video.note || "없음"}</span></p>
         <input type="text" id="edit-note-${video.id}" placeholder="메모 수정" class="p-2 w-full border rounded" />
         <div class="flex gap-2 mt-2">
