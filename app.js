@@ -1,4 +1,4 @@
-// app.js
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { auth, db } from "./firebase-config.js";
 import { getSession } from "./auth.js";
 import {
@@ -141,12 +141,17 @@ window.postComment = async function (videoId) {
 
   const session = await getSession();
   const uid = session?.user?.uid;
-  const name = session?.user?.name || "익명";
+  if (!uid) return alert("로그인이 필요합니다.");
+
+  // 🔽 Firestore에서 사용자 이름 가져오기
+  const userRef = doc(db, "users", uid);
+  const userSnap = await getDoc(userRef);
+  const name = userSnap.exists() ? userSnap.data().name : "익명";
 
   await addDoc(collection(db, "comments"), {
     video_id: videoId,
     uid,
-    name, // 추가
+    name,
     content,
     created_at: new Date().toISOString()
   });
@@ -210,7 +215,7 @@ async function loadLikes(videoId) {
 
   const liked = snapshot.docs.some(doc => doc.data().uid === uid);
   likeBtn.textContent = liked ? "❤️" : "🤍";
-  
+
 }
 
 // ✅ 좋아요 토글

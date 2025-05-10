@@ -1,4 +1,5 @@
-// auth.js
+import { db } from "./firebase-config.js"; // Firestore 가져오기
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { auth } from "./firebase-config.js";
 import {
   createUserWithEmailAndPassword,
@@ -60,9 +61,15 @@ export async function getSession() {
 window.handleSignup = async function () {
   const email = document.getElementById("authEmail").value;
   const password = document.getElementById("authPassword").value;
+  const name = document.getElementById("authName").value;
 
   const result = await signup(email, password);
   if (result) {
+    const uid = result.user.uid;
+    await setDoc(doc(db, "users", uid), {
+      name,
+      email
+    });
     document.getElementById("signupMessage").classList.remove("hidden");
   }
 };
@@ -81,9 +88,5 @@ window.handleLogout = async function () {
 
 console.log("✅ auth.js loaded"); // 배포 확인용
 
+
   
-// force deploy
-// trigger deploy
-// 🔁 캐시 무력화 테스트
-// force deploy
-// trigger redeploy
