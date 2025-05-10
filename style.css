@@ -122,4 +122,15 @@ body {
       border-radius: 1rem;
     }
   }
+  .transition-toggle {
+    transition: all 0.3s ease;
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+  }
+  
+  .transition-toggle.open {
+    opacity: 1;
+    max-height: 500px; /* 적절히 조정 */
+  }
   
