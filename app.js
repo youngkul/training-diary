@@ -85,6 +85,19 @@ async function loadAllVideos() {
   const session = await getSession();
   const currentUid = session?.user?.uid;
 
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const video = entry.target;
+      if (entry.isIntersecting) {
+        video.play().catch(() => {});
+      } else {
+        video.pause();
+      }
+    });
+  }, {
+    threshold: 0.5 // 50% 이상 보일 때만 재생
+  });
+
   snapshot.forEach(async (docSnap) => {
     const video = { id: docSnap.id, ...docSnap.data() };
     const videoDiv = document.createElement("div");
@@ -93,7 +106,16 @@ async function loadAllVideos() {
     videoDiv.innerHTML = `
       <div class="bg-white rounded-2xl shadow-lg p-5 space-y-4">
         <p class="text-sm text-gray-500">${video.name || "익명"}님이 ${timeAgo(video.created_at)}에 업로드했습니다</p>
-        <video src="${video.url}" controls class="w-full aspect-video rounded-xl shadow-lg border border-gray-200"></video>
+        <video
+          src="${video.url}"
+          poster="${video.poster || 'https://via.placeholder.com/640x360?text=Preview'}"
+          controls
+          muted
+          playsinline
+          preload="metadata"
+          loading="lazy"
+          class="w-full aspect-video rounded-xl shadow-lg border border-gray-200"
+        ></video>
         <p><strong>메모:</strong> <span id="note-${video.id}">${video.note || "없음"}</span></p>
         <input type="text" id="edit-note-${video.id}" placeholder="메모 수정" class="p-2 w-full border rounded" />
         <div class="flex gap-2 mt-2">
@@ -112,10 +134,15 @@ async function loadAllVideos() {
     `;
 
     videoFeed.appendChild(videoDiv);
+
+    const videoTag = videoDiv.querySelector("video");
+    if (videoTag) observer.observe(videoTag); // 스크롤 감지 시작
+
     await loadComments(video.id);
     await loadLikes(video.id);
   });
 }
+
 
 // ✅ 메모 수정
 window.updateNote = async function (videoId) {
