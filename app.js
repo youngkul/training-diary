@@ -14,6 +14,10 @@ window.uploadVideo = async function () {
   const uid = session?.user?.uid;
   if (!uid) return alert("로그인이 필요합니다.");
 
+  const userRef = doc(db, "users", uid);
+  const userSnap = await getDoc(userRef);
+  const name = userSnap.exists() ? userSnap.data().name : "익명";
+
   // ✅ 1. Firebase Functions로 Signed URL 요청
   const fileName = `${Date.now()}_${file.name}`;
   const signedUrlResponse = await fetch(`https://us-central1-training-video-b4935.cloudfunctions.net/getSignedUrl?fileName=${encodeURIComponent(fileName)}`);
@@ -36,6 +40,7 @@ window.uploadVideo = async function () {
     url: publicUrl,
     note,
     uid,
+    name,
     created_at: new Date().toISOString()
   });
 
@@ -87,7 +92,7 @@ async function loadAllVideos() {
 
     videoDiv.innerHTML = `
       <div class="bg-white rounded-2xl shadow-lg p-5 space-y-4">
-        <p class="text-sm text-gray-500">${timeAgo(video.created_at)}에 업로드됨</p>
+        <p class="text-sm text-gray-500">${video.name || "익명"}님이 ${timeAgo(video.created_at)}에 업로드했습니다</p>
         <video src="${video.url}" controls class="w-full aspect-video rounded-xl shadow-lg border border-gray-200"></video>
         <p><strong>메모:</strong> <span id="note-${video.id}">${video.note || "없음"}</span></p>
         <input type="text" id="edit-note-${video.id}" placeholder="메모 수정" class="p-2 w-full border rounded" />
