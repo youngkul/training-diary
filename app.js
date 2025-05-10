@@ -108,7 +108,7 @@ async function loadAllVideos() {
         <p class="text-sm text-gray-500">${video.name || "익명"}님이 ${timeAgo(video.created_at)}에 업로드했습니다</p>
         <video
           src="${video.url}"
-          poster="${video.poster || 'https://via.placeholder.com/640x360?text=Preview'}"
+          poster="${video.poster || 'https://placehold.co/640x360?text=썸네일'}"
           controls
           muted
           playsinline
