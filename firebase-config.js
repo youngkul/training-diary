@@ -9,8 +9,9 @@ const firebaseConfig = {
   projectId: "training-video-b4935",
   storageBucket: "training-video-b4935.appspot.com",
   messagingSenderId: "1099229932660",
-  appId: "1:1099229932660:web:실제값입력"
+  appId: "1:1099229932660:web:0c71995a5bd79b657c3521"  
 };
+
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
