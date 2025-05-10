@@ -210,6 +210,7 @@ async function loadLikes(videoId) {
 
   const liked = snapshot.docs.some(doc => doc.data().uid === uid);
   likeBtn.textContent = liked ? "❤️" : "🤍";
+  
 }
 
 // ✅ 좋아요 토글
