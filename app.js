@@ -69,9 +69,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 // ✅ 영상 업로드
 window.uploadVideo = async function () {
+  const uploadBtn = document.querySelector("button[onclick='uploadVideo()']");
+  uploadBtn.disabled = true;
+  uploadBtn.textContent = "업로드 중...";
+
   const file = document.getElementById("videoInput").files[0];
   const note = document.getElementById("videoNote").value;
-  if (!file) return alert("영상을 선택하세요.");
+  if (!file) {
+    alert("영상을 선택하세요.");
+    uploadBtn.disabled = false;
+    uploadBtn.textContent = "업로드";
+    return;
+  }
 
   const session = await getSession();
   const uid = session?.user?.uid;
@@ -95,7 +104,10 @@ window.uploadVideo = async function () {
 
   if (!uploadRes.ok) {
     console.error("Wasabi 업로드 실패:", await uploadRes.text());
-    return alert("영상 업로드 실패");
+    alert("영상 업로드 실패");
+    uploadBtn.disabled = false;
+    uploadBtn.textContent = "업로드";
+    return;
   }
 
   await addDoc(collection(db, "videos"), {
@@ -107,8 +119,17 @@ window.uploadVideo = async function () {
   });
 
   alert("업로드 성공!");
+
+  // 업로드 폼 초기화
+  document.getElementById("videoInput").value = "";
+  document.getElementById("videoNote").value = "";
+  uploadBtn.disabled = false;
+  uploadBtn.textContent = "업로드";
+
+  // 새로고침 대신 영상만 다시 로드
   loadAllVideos();
 };
+
 
 // ✅ 영상 삭제
 window.deleteVideo = async function (videoId) {
