@@ -1,7 +1,9 @@
+// ✅ Firebase 및 인증 모듈 가져오기
 import { auth, db } from "./firebase-config.js";
 import { getSession } from "./auth.js";
 import {
-  collection, addDoc, getDocs, deleteDoc, doc, getDoc, query, where, orderBy, updateDoc
+  collection, addDoc, getDocs, deleteDoc, doc, getDoc,
+  query, where, orderBy, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // ✅ 영상 업로드
@@ -18,12 +20,12 @@ window.uploadVideo = async function () {
   const userSnap = await getDoc(userRef);
   const name = userSnap.exists() ? userSnap.data().name : "익명";
 
-  // ✅ 1. Firebase Functions로 Signed URL 요청
   const fileName = `${Date.now()}_${file.name}`;
-  const signedUrlResponse = await fetch(`https://us-central1-training-video-b4935.cloudfunctions.net/getSignedUrl?fileName=${encodeURIComponent(fileName)}`);
+  const signedUrlResponse = await fetch(
+    `https://us-central1-training-video-b4935.cloudfunctions.net/getSignedUrl?fileName=${encodeURIComponent(fileName)}`
+  );
   const { signedUrl, publicUrl } = await signedUrlResponse.json();
 
-  // ✅ 2. Wasabi에 실제 영상 업로드
   const uploadRes = await fetch(signedUrl, {
     method: "PUT",
     headers: { "Content-Type": file.type },
@@ -35,7 +37,6 @@ window.uploadVideo = async function () {
     return alert("영상 업로드 실패");
   }
 
-  // ✅ 3. Firestore에 메타데이터 저장
   await addDoc(collection(db, "videos"), {
     url: publicUrl,
     note,
@@ -48,9 +49,8 @@ window.uploadVideo = async function () {
   loadAllVideos();
 };
 
-
 // ✅ 영상 삭제
-window.deleteVideo = async function (videoId, videoUrl) {
+window.deleteVideo = async function (videoId) {
   const confirmDelete = confirm("정말 삭제하시겠습니까?");
   if (!confirmDelete) return;
 
@@ -58,23 +58,18 @@ window.deleteVideo = async function (videoId, videoUrl) {
   const uid = session?.user?.uid;
   if (!uid) return alert("로그인이 필요합니다.");
 
-  // ✅ 1. 좋아요 삭제
   const likesQuery = query(collection(db, "likes"), where("video_id", "==", videoId));
   const likesSnap = await getDocs(likesQuery);
   likesSnap.forEach(async (likeDoc) => {
     await deleteDoc(doc(db, "likes", likeDoc.id));
   });
 
-  // ✅ 2. 영상 메타데이터 삭제
   await deleteDoc(doc(db, "videos", videoId));
-
-  // ✅ 3. Wasabi에서 삭제 요청 (생략 or Functions 구현 필요)
-
   alert("삭제 완료");
   loadAllVideos();
 };
 
-// ✅ 전체 영상 로딩
+// ✅ 영상 목록 로딩
 async function loadAllVideos() {
   const videoFeed = document.getElementById("videoFeed");
   videoFeed.innerHTML = "";
@@ -94,9 +89,7 @@ async function loadAllVideos() {
         video.pause();
       }
     });
-  }, {
-    threshold: 0.5 // 50% 이상 보일 때만 재생
-  });
+  }, { threshold: 0.5 });
 
   snapshot.forEach(async (docSnap) => {
     const video = { id: docSnap.id, ...docSnap.data() };
@@ -121,7 +114,7 @@ async function loadAllVideos() {
         <div class="flex gap-2 mt-2">
           <button onclick="updateNote('${video.id}')" class="bg-yellow-500 text-white px-3 py-1 rounded">메모 저장</button>
           <button onclick="deleteNote('${video.id}')" class="bg-gray-600 text-white px-3 py-1 rounded">메모 삭제</button>
-          <button onclick="deleteVideo('${video.id}', '${video.url}')" class="bg-red-500 text-white px-3 py-1 rounded">영상 삭제</button>
+          <button onclick="deleteVideo('${video.id}')" class="bg-red-500 text-white px-3 py-1 rounded">영상 삭제</button>
         </div>
         <div class="flex items-center mt-2">
           <button onclick="toggleLike('${video.id}')" id="like-btn-${video.id}" class="text-red-500 text-xl">❤️</button>
@@ -134,17 +127,14 @@ async function loadAllVideos() {
     `;
 
     videoFeed.appendChild(videoDiv);
-
     const videoTag = videoDiv.querySelector("video");
-    if (videoTag) observer.observe(videoTag); // 스크롤 감지 시작
-
+    if (videoTag) observer.observe(videoTag);
     await loadComments(video.id);
     await loadLikes(video.id);
   });
 }
 
-
-// ✅ 메모 수정
+// ✅ 메모
 window.updateNote = async function (videoId) {
   const input = document.getElementById(`edit-note-${videoId}`);
   const newNote = input.value.trim();
@@ -156,7 +146,6 @@ window.updateNote = async function (videoId) {
   alert("메모 저장 완료");
 };
 
-// ✅ 메모 삭제
 window.deleteNote = async function (videoId) {
   await updateDoc(doc(db, "videos", videoId), { note: "" });
   document.getElementById(`note-${videoId}`).textContent = "없음";
@@ -164,7 +153,7 @@ window.deleteNote = async function (videoId) {
   alert("메모 삭제 완료");
 };
 
-// ✅ 댓글 작성
+// ✅ 댓글
 window.postComment = async function (videoId) {
   const input = document.getElementById(`comment-input-${videoId}`);
   const content = input.value.trim();
@@ -174,7 +163,6 @@ window.postComment = async function (videoId) {
   const uid = session?.user?.uid;
   if (!uid) return alert("로그인이 필요합니다.");
 
-  // 🔽 Firestore에서 사용자 이름 가져오기
   const userRef = doc(db, "users", uid);
   const userSnap = await getDoc(userRef);
   const name = userSnap.exists() ? userSnap.data().name : "익명";
@@ -191,8 +179,11 @@ window.postComment = async function (videoId) {
   loadComments(videoId);
 };
 
+window.deleteComment = async function (videoId, commentId) {
+  await deleteDoc(doc(db, "comments", commentId));
+  loadComments(videoId);
+};
 
-// ✅ 댓글 불러오기
 async function loadComments(videoId) {
   const q = query(collection(db, "comments"), where("video_id", "==", videoId), orderBy("created_at"));
   const snapshot = await getDocs(q);
@@ -208,8 +199,7 @@ async function loadComments(videoId) {
     div.classList.add("flex", "justify-between", "items-center");
 
     const p = document.createElement("p");
-    const displayName = comment.name || "익명";
-    p.textContent = `${displayName}: ${comment.content}`;
+    p.textContent = `${comment.name || "익명"}: ${comment.content}`;
     div.appendChild(p);
 
     if (comment.uid === currentUid) {
@@ -224,14 +214,7 @@ async function loadComments(videoId) {
   });
 }
 
-
-// ✅ 댓글 삭제
-window.deleteComment = async function (videoId, commentId) {
-  await deleteDoc(doc(db, "comments", commentId));
-  loadComments(videoId);
-};
-
-// ✅ 좋아요 불러오기
+// ✅ 좋아요
 async function loadLikes(videoId) {
   const q = query(collection(db, "likes"), where("video_id", "==", videoId));
   const snapshot = await getDocs(q);
@@ -246,10 +229,8 @@ async function loadLikes(videoId) {
 
   const liked = snapshot.docs.some(doc => doc.data().uid === uid);
   likeBtn.textContent = liked ? "❤️" : "🤍";
-
 }
 
-// ✅ 좋아요 토글
 window.toggleLike = async function (videoId) {
   const session = await getSession();
   const uid = session?.user?.uid;
@@ -266,7 +247,7 @@ window.toggleLike = async function (videoId) {
   loadLikes(videoId);
 };
 
-// ✅ 시간 표시
+// ✅ 시간 경과 표시
 function timeAgo(dateString) {
   const now = new Date();
   const uploaded = new Date(dateString);
@@ -278,7 +259,7 @@ function timeAgo(dateString) {
   return `${Math.floor(diff / 86400)}일 전`;
 }
 
-// ✅ 로그인 여부 확인
+// ✅ 로그인 상태 확인 → 초기 진입 처리
 async function checkLoginStatus() {
   const session = await getSession();
   const authDiv = document.getElementById("authSection");
@@ -286,19 +267,20 @@ async function checkLoginStatus() {
   const userInfo = document.getElementById("userInfo");
 
   if (session) {
+    localStorage.setItem("uid", session.user.uid);
     authDiv.classList.add("hidden");
     mainDiv.classList.remove("hidden");
     userInfo.innerText = `로그인됨: ${session.user.email}`;
     loadAllVideos();
   } else {
+    localStorage.removeItem("uid");
     authDiv.classList.remove("hidden");
     mainDiv.classList.add("hidden");
   }
 }
 
-// ✅ 페이지 로딩 시 실행
+// ✅ 시작 시 실행
 document.addEventListener("DOMContentLoaded", checkLoginStatus);
-
     
   
 

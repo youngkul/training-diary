@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>선수 개인 피드</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans p-4">
+
+  <h1 class="text-2xl font-bold text-center text-gray-800 mb-4">선수 개인 피드</h1>
+  <div id="userName" class="text-center text-gray-600 mb-6"></div>
+
+  <div id="videoFeed" class="space-y-6 max-w-xl mx-auto">
+    <!-- 선수 영상 목록 -->
+  </div>
+
+  <!-- Firebase 설정 -->
+  <script type="module">
+    import { db } from './firebase-config.js';
+    import { collection, getDocs, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const uid = urlParams.get("uid");
+    if (!uid) {
+      alert("잘못된 접근입니다. uid가 필요합니다.");
+      location.href = "/";
+    }
+
+    const videoFeed = document.getElementById("videoFeed");
+    const userName = document.getElementById("userName");
+
+    async function loadUserVideos() {
+      const videoQuery = query(
+        collection(db, "videos"),
+        where("uid", "==", uid),
+        orderBy("created_at", "desc")
+      );
+      const snapshot = await getDocs(videoQuery);
+
+      if (snapshot.empty) {
+        videoFeed.innerHTML = "<p class='text-center text-gray-500'>업로드한 영상이 없습니다.</p>";
+        return;
+      }
+
+      let name = "";
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        if (!name) name = data.name;
+
+        const videoEl = document.createElement("div");
+        videoEl.className = "bg-white rounded-xl shadow p-4 space-y-2";
+
+        videoEl.innerHTML = `
+          <p class="text-sm text-gray-500">${data.created_at?.split("T")[0] || ""} 업로드</p>
+          <video src="${data.url}" controls class="w-full rounded-xl shadow-lg border border-gray-200"></video>
+          <p><strong>메모:</strong> ${data.note || "없음"}</p>
+        `;
+
+        videoFeed.appendChild(videoEl);
+      });
+
+      userName.innerText = `${name} 님의 영상`;
+    }
+
+    loadUserVideos();
+  </script>
+
+</body>
+</html>
