@@ -182,6 +182,7 @@ async function loadAllVideos() {
           <span id="like-count-${video.id}" class="ml-2">0</span>명이 좋아요
         </div>
         <div data-video-id="${video.id}" class="comment-box mt-4 text-sm text-gray-700"></div>
+        <div id="comments-${video.id}" class="mt-4 text-sm text-gray-700"></div>
 
         <input type="text" placeholder="댓글 작성" id="comment-input-${video.id}" class="p-2 mt-2 w-full border rounded" />
         <button onclick="postComment('${video.id}')" class="mt-2 bg-blue-500 text-white px-3 py-1 rounded">댓글 달기</button>
