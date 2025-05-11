@@ -19,17 +19,29 @@
   <script type="module">
     import { db } from './firebase-config.js';
     import { collection, getDocs, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
+  
     const urlParams = new URLSearchParams(window.location.search);
     const uid = urlParams.get("uid");
     if (!uid) {
       alert("잘못된 접근입니다. uid가 필요합니다.");
       location.href = "/";
     }
-
+  
     const videoFeed = document.getElementById("videoFeed");
     const userName = document.getElementById("userName");
-
+  
+    // ✅ IntersectionObserver: 스크롤로 영상 자동 재생
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const video = entry.target;
+        if (entry.isIntersecting) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      });
+    }, { threshold: 0.5 });
+  
     async function loadUserVideos() {
       const videoQuery = query(
         collection(db, "videos"),
@@ -37,34 +49,38 @@
         orderBy("created_at", "desc")
       );
       const snapshot = await getDocs(videoQuery);
-
+  
       if (snapshot.empty) {
         videoFeed.innerHTML = "<p class='text-center text-gray-500'>업로드한 영상이 없습니다.</p>";
         return;
       }
-
+  
       let name = "";
       snapshot.forEach(docSnap => {
         const data = docSnap.data();
         if (!name) name = data.name;
-
+  
         const videoEl = document.createElement("div");
         videoEl.className = "bg-white rounded-xl shadow p-4 space-y-2";
-
+  
         videoEl.innerHTML = `
           <p class="text-sm text-gray-500">${data.created_at?.split("T")[0] || ""} 업로드</p>
-          <video src="${data.url}" controls class="w-full rounded-xl shadow-lg border border-gray-200"></video>
+          <video src="${data.url}" controls muted playsinline preload="metadata" class="w-full rounded-xl shadow-lg border border-gray-200"></video>
           <p><strong>메모:</strong> ${data.note || "없음"}</p>
         `;
-
+  
         videoFeed.appendChild(videoEl);
+  
+        const videoTag = videoEl.querySelector("video");
+        if (videoTag) observer.observe(videoTag); // ✅ 자동 재생 감시 시작
       });
-
+  
       userName.innerText = `${name} 님의 영상`;
     }
-
+  
     loadUserVideos();
   </script>
+  
 
 </body>
 </html>
