@@ -180,15 +180,11 @@ async function loadAllVideos() {
         <div class="flex items-center mt-2">
           <button onclick="toggleLike('${video.id}')" id="like-btn-${video.id}" class="text-red-500 text-xl">❤️</button>
           <span id="like-count-${video.id}" class="ml-2">0</span>명이 좋아요
+        </div>
         <div data-video-id="${video.id}" class="comment-box mt-4 text-sm text-gray-700"></div>
-        <input type="text" placeholder="댓글 작성"
-              data-input-id="${video.id}"
-              class="p-2 mt-2 w-full border rounded" />
-        <button onclick="postComment('${video.id}')"
-                class="mt-2 bg-blue-500 text-white px-3 py-1 rounded">
-          댓글 달기
-        </button>
 
+        <input type="text" placeholder="댓글 작성" id="comment-input-${video.id}" class="p-2 mt-2 w-full border rounded" />
+        <button onclick="postComment('${video.id}')" class="mt-2 bg-blue-500 text-white px-3 py-1 rounded">댓글 달기</button>
       </div>
     `;
 
@@ -221,9 +217,8 @@ window.deleteNote = async function (videoId) {
 
 // ✅ 댓글
 window.postComment = async function (videoId) {
-  const input = document.querySelector(`[data-input-id="${videoId}"]`);
+  const input = document.getElementById(`comment-input-${videoId}`);
   const content = input.value.trim();
-
   if (!content) return;
 
   const session = await getSession();
@@ -257,13 +252,8 @@ async function loadComments(videoId) {
 
   const session = await getSession();
   const currentUid = session?.user?.uid;
-  const container = document.querySelector(`[data-video-id="${videoId}"]`);
-if (!container) {
-  console.warn(`댓글 컨테이너를 찾을 수 없음: videoId=${videoId}`);
-  return;
-}
-container.innerHTML = "<p class='font-semibold'>댓글:</p>";
-
+  const container = document.getElementById(`comments-${videoId}`);
+  container.innerHTML = "<p class='font-semibold'>댓글:</p>";
 
   snapshot.forEach((docSnap) => {
     const comment = { id: docSnap.id, ...docSnap.data() };
