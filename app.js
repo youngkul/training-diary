@@ -63,7 +63,7 @@ window.loadFriendRequests = async function () {
 document.addEventListener("DOMContentLoaded", async () => {
   const session = await getSession();
   if (session) {
-    loadAllVideos?.(); // 영상 불러오기 함수가 있다면 실행
+    // loadAllVideos?.(); // 영상 불러오기 함수가 있다면 실행
     loadFriendRequests(); // 친구 요청도 함께 불러오기
   }
 });
