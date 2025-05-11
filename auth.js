@@ -1,6 +1,5 @@
-import { db } from "./firebase-config.js"; // Firestore 가져오기
+import { auth, db } from "./firebase-config.js";
 import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { auth } from "./firebase-config.js";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -9,84 +8,48 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 // ✅ 회원가입
-export async function signup(email, password) {
-  try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    return userCredential;
-  } catch (error) {
-    console.error("회원가입 오류:", error.message);
-    alert("회원가입 실패: " + error.message);
-    return null;
-  }
-}
-
-// ✅ 로그인
-export async function login(email, password) {
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    return userCredential;
-  } catch (error) {
-    console.error("로그인 오류:", error.message);
-    alert("로그인 실패: " + error.message);
-    return null;
-  }
-}
-
-// ✅ 로그아웃
-export async function logout() {
-  try {
-    await signOut(auth);
-    alert("로그아웃 되었습니다.");
-    location.reload();
-  } catch (error) {
-    console.error("로그아웃 오류:", error.message);
-    alert("로그아웃 실패: " + error.message);
-  }
-}
-
-// ✅ 세션 가져오기
-export async function getSession() {
-  return new Promise((resolve) => {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        resolve({ user });
-      } else {
-        resolve(null);
-      }
-    });
-  });
-}
-
-// ✅ 전역 연결
 window.handleSignup = async function () {
   const email = document.getElementById("authEmail").value;
   const password = document.getElementById("authPassword").value;
   const name = document.getElementById("authName").value;
 
-  const result = await signup(email, password);
-  if (result) {
-    const uid = result.user.uid;
-    await setDoc(doc(db, "users", uid), {
-      name,
-      email
-    });
-    document.getElementById("signupMessage").classList.remove("hidden");
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    await setDoc(doc(db, "users", cred.user.uid), { email, name });
+    alert("회원가입 성공! 이메일 인증 확인 후 로그인 해주세요.");
+  } catch (error) {
+    console.error("회원가입 실패:", error.message);
+    alert("회원가입 실패: " + error.message);
   }
 };
 
+// ✅ 로그인
 window.handleLogin = async function () {
   const email = document.getElementById("authEmail").value;
   const password = document.getElementById("authPassword").value;
 
-  const result = await login(email, password);
-  if (result) location.reload();
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    alert("로그인 성공!");
+    window.location.reload(); // 또는 checkLoginStatus()
+  } catch (error) {
+    console.error("로그인 실패:", error.message);
+    alert("로그인 실패: " + error.message);
+  }
 };
 
+// ✅ 로그아웃
 window.handleLogout = async function () {
-  await logout();
+  try {
+    await signOut(auth);
+    alert("로그아웃 완료");
+    window.location.reload();
+  } catch (error) {
+    console.error("로그아웃 오류:", error.message);
+    alert("로그아웃 실패: " + error.message);
+  }
 };
 
-console.log("✅ auth.js loaded"); // 배포 확인용
 
 
   

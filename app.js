@@ -1,6 +1,6 @@
 // ✅ Firebase 및 인증 모듈 가져오기
 import { auth, db } from "./firebase-config.js";
-import { getSession } from "./auth.js";
+import { getSession } from "./auth-utils.js";
 import {
   collection, addDoc, getDocs, deleteDoc, doc, getDoc,
   query, where, orderBy, updateDoc,serverTimestamp
