@@ -180,10 +180,15 @@ async function loadAllVideos() {
         <div class="flex items-center mt-2">
           <button onclick="toggleLike('${video.id}')" id="like-btn-${video.id}" class="text-red-500 text-xl">❤️</button>
           <span id="like-count-${video.id}" class="ml-2">0</span>명이 좋아요
-        </div>
-        <div id="comments-${video.id}" class="mt-4 text-sm text-gray-700"></div>
-        <input type="text" placeholder="댓글 작성" id="comment-input-${video.id}" class="p-2 mt-2 w-full border rounded" />
-        <button onclick="postComment('${video.id}')" class="mt-2 bg-blue-500 text-white px-3 py-1 rounded">댓글 달기</button>
+        <div data-video-id="${video.id}" class="comment-box mt-4 text-sm text-gray-700"></div>
+        <input type="text" placeholder="댓글 작성"
+              data-input-id="${video.id}"
+              class="p-2 mt-2 w-full border rounded" />
+        <button onclick="postComment('${video.id}')"
+                class="mt-2 bg-blue-500 text-white px-3 py-1 rounded">
+          댓글 달기
+        </button>
+
       </div>
     `;
 
@@ -216,8 +221,9 @@ window.deleteNote = async function (videoId) {
 
 // ✅ 댓글
 window.postComment = async function (videoId) {
-  const input = document.getElementById(`comment-input-${videoId}`);
+  const input = document.querySelector(`[data-input-id="${videoId}"]`);
   const content = input.value.trim();
+
   if (!content) return;
 
   const session = await getSession();
