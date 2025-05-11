@@ -20,7 +20,15 @@
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen font-sans pb-20">
-
+  <header class="flex justify-end items-center p-4 bg-white shadow fixed top-0 left-0 right-0 z-50">
+    <div class="relative">
+      <button id="menuToggle" class="text-2xl">☰</button>
+      <div id="dropdownMenu" class="hidden absolute right-0 mt-2 bg-white border rounded shadow w-40">
+        <button onclick="handleLogout()" class="block w-full text-left px-4 py-2 hover:bg-gray-100">로그아웃</button>
+      </div>
+    </div>
+  </header>
+  <div class="pt-16"></div> 
   <!-- 로그인 / 회원가입 섹션 -->
   <section id="authSection" class="max-w-md mx-auto mt-20 p-6 bg-white rounded-2xl shadow-md space-y-5">
     <h2 class="text-2xl font-bold text-center text-gray-800">로그인 또는 회원가입</h2>
@@ -125,10 +133,23 @@
       window.location.href = "/friends.html";
     }
   </script>
-
+  <script>
+    document.getElementById("menuToggle").addEventListener("click", () => {
+      const menu = document.getElementById("dropdownMenu");
+      menu.classList.toggle("hidden");
+    });
+  
+    document.addEventListener("click", (e) => {
+      const menu = document.getElementById("dropdownMenu");
+      const toggle = document.getElementById("menuToggle");
+      if (!menu.contains(e.target) && !toggle.contains(e.target)) {
+        menu.classList.add("hidden");
+      }
+    });
+  </script>
+  
   <!-- Firebase 관련 모듈 -->
   <script type="module" src="./firebase-config.js?v=2"></script>
-  <script type="module" src="./auth.js?v=3"></script>
   <script type="module" src="./app.js?v=4"></script>
 
 </body>
