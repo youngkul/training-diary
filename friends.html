@@ -1,23 +1,68 @@
-<!-- friends.html -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>친구 관리</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>친구 요청 관리</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css?v=1" />
 </head>
-<body class="bg-gray-100 min-h-screen p-6">
-  <h2 class="text-2xl font-bold text-center mb-4">🤝 친구 요청 관리</h2>
+<body class="bg-gray-100 min-h-screen py-10 font-sans">
 
-  <div class="flex gap-2 mb-4">
-    <input id="friendUidInput" type="text" placeholder="친구 UID 입력" class="flex-1 border p-2 rounded" />
-    <button onclick="sendFriendRequest()" class="bg-blue-500 text-white px-4 py-2 rounded">
-      + 친구 요청
+  <!-- 헤더 -->
+  <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">🤝 친구 요청 관리</h1>
+
+  <!-- 친구 요청 입력 -->
+  <div class="max-w-xl mx-auto flex gap-2 items-center mb-8 px-4">
+    <input id="friendUidInput" type="text" placeholder="친구 UID 입력"
+      class="flex-1 border px-4 py-2 rounded-lg shadow-sm text-sm focus:ring focus:ring-blue-300" />
+    <button onclick="sendFriendRequest()"
+      class="bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-md flex items-center gap-1">
+      <span>➕</span> 친구 요청
     </button>
   </div>
 
-  <div id="friendRequestList" class="space-y-2"></div>
+  <!-- 받은 친구 요청 목록 -->
+  <div class="max-w-xl mx-auto bg-white p-5 rounded-xl shadow" id="friendRequestsBox">
+    <h2 class="text-xl font-semibold mb-4 text-gray-800">받은 친구 요청</h2>
+    <div id="friendRequestList" class="space-y-4">
+      <p class="text-gray-500">로딩 중...</p>
+    </div>
+  </div>
 
+  <!-- 하단 네비게이션 -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center h-16 shadow z-50">
+    <button onclick="goHome()">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path d="M3 12l2-2m0 0l7-7 7 7M13 5v6h6m-6 0H5m6 0v6" />
+      </svg>
+    </button>
+    <button onclick="goMyPage()">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path d="M5.121 17.804A7.5 7.5 0 0112 3a7.5 7.5 0 016.879 14.804M15 21H9" />
+      </svg>
+    </button>
+  </nav>
+
+  <!-- 스크립트 -->
+  <script>
+    function goHome() {
+      window.location.href = "/index.html";
+    }
+
+    function goMyPage() {
+      const uid = localStorage.getItem("uid");
+      if (uid) {
+        window.location.href = `/user.html?uid=${uid}`;
+      } else {
+        alert("로그인이 필요합니다.");
+      }
+    }
+  </script>
+
+  <!-- 모듈 -->
+  <script type="module" src="./firebase-config.js"></script>
+  <script type="module" src="./auth.js"></script>
   <script type="module" src="./friends.js"></script>
 </body>
 </html>

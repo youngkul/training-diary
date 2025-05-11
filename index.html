@@ -50,24 +50,6 @@
       <input type="file" id="videoInput" accept="video/*" class="w-full text-gray-700" />
       <button onclick="uploadVideo()" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition">업로드</button>
     </div>
-<!-- ✅ 친구 요청 UI -->
-    <div class="mt-4 flex justify-center gap-2 items-center">
-      <input id="friendUidInput" type="text" placeholder="친구 UID 입력"
-        class="w-2/3 max-w-xs border px-3 py-2 rounded-lg text-sm shadow-sm focus:ring focus:ring-blue-300" />
-      <button onclick="sendFriendRequest()"
-        class="bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-2 rounded-md transition flex items-center gap-1">
-        <span class="text-base">➕</span>요청
-      </button>
-    </div>
-
-
-    <!-- ✅ 친구 요청 수락/거절 목록 -->
-    <div class="max-w-xl mx-auto mt-10 bg-white p-4 rounded-xl shadow" id="friendRequestsBox">
-      <h2 class="text-xl font-semibold mb-4 text-gray-800">받은 친구 요청</h2>
-      <div id="friendRequestList" class="space-y-3">
-        <p class="text-gray-500">로딩 중...</p>
-      </div>
-    </div>
 
     <!-- 영상 목록 피드 -->
     <div class="max-w-xl mx-auto mt-10 p-6 bg-white rounded-2xl shadow space-y-6" id="videoFeed">
@@ -107,26 +89,6 @@
 
   <!-- 스크립트 -->
   <script>
-    window.sendFriendRequest = async function () {
-      const input = document.getElementById("friendUidInput");
-      const toUid = input.value.trim();
-      if (!toUid) return alert("UID를 입력하세요.");
-    
-      const session = await getSession();
-      const fromUid = session?.user?.uid;
-      if (!fromUid) return alert("로그인이 필요합니다.");
-      if (fromUid === toUid) return alert("자기 자신에게는 요청할 수 없습니다.");
-    
-      await addDoc(collection(db, "friend_requests"), {
-        from: fromUid,
-        to: toUid,
-        created_at: new Date().toISOString()
-      });
-    
-      alert("친구 요청을 보냈습니다!");
-      input.value = "";
-    };
-    
     function toggleUpload() {
       const section = document.getElementById("uploadSection");
       section.classList.toggle("open");
@@ -143,9 +105,9 @@
     function goUpload() {
       const section = document.getElementById("uploadSection");
       if (!section) return;
-  
+
       section.classList.toggle("open");
-  
+
       if (section.classList.contains("open")) {
         window.scrollTo({ top: section.offsetTop - 50, behavior: "smooth" });
       }
@@ -158,22 +120,7 @@
         alert("로그인이 필요합니다.");
       }
     }
-  
-    function goFriends() {
-      alert("친구 요청/수락 페이지로 연결 예정!");
-    }
-    function goMyPage() {
-      const uid = localStorage.getItem("uid");
-      if (uid) {
-        window.location.href = `/user.html?uid=${uid}`;
-      } else {
-        alert("로그인이 필요합니다.");
-      }
-    }
 
-    function goFriends() {
-      alert("친구 요청/수락 페이지로 연결 예정!");
-    }
     function goFriends() {
       window.location.href = "/friends.html";
     }
