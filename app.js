@@ -3,9 +3,70 @@ import { auth, db } from "./firebase-config.js";
 import { getSession } from "./auth.js";
 import {
   collection, addDoc, getDocs, deleteDoc, doc, getDoc,
-  query, where, orderBy, updateDoc
+  query, where, orderBy, updateDoc,serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+// ✅ 요청 수락
+window.acceptFriendRequest = async function (requestId, fromUid, toUid) {
+  await addDoc(collection(db, "friends"), {
+    uid1: fromUid,
+    uid2: toUid,
+    created_at: serverTimestamp()
+  });
+  await deleteDoc(doc(db, "friend_requests", requestId));
+  alert("친구 요청을 수락했습니다.");
+  loadFriendRequests(); // 목록 다시 불러오기
+};
 
+// ✅ 요청 거절
+window.rejectFriendRequest = async function (requestId) {
+  await deleteDoc(doc(db, "friend_requests", requestId));
+  alert("친구 요청을 거절했습니다.");
+  loadFriendRequests(); // 목록 다시 불러오기
+};
+
+// ✅ 받은 요청 불러오기
+window.loadFriendRequests = async function () {
+  const session = await getSession();
+  const currentUid = session?.user?.uid;
+  const listBox = document.getElementById("friendRequestList");
+
+  if (!currentUid || !listBox) return;
+
+  const q = query(collection(db, "friend_requests"), where("to", "==", currentUid));
+  const snap = await getDocs(q);
+
+  if (snap.empty) {
+    listBox.innerHTML = "<p class='text-gray-500'>받은 요청이 없습니다.</p>";
+    return;
+  }
+
+  listBox.innerHTML = "";
+
+  snap.forEach(docSnap => {
+    const data = docSnap.data();
+    const div = document.createElement("div");
+    div.className = "flex justify-between items-center border p-3 rounded";
+
+    div.innerHTML = `
+      <p class="text-gray-800">${data.from} 님이 친구 요청</p>
+      <div class="flex gap-2">
+        <button onclick="acceptFriendRequest('${docSnap.id}', '${data.from}', '${data.to}')" class="text-green-600">수락</button>
+        <button onclick="rejectFriendRequest('${docSnap.id}')" class="text-red-600">거절</button>
+      </div>
+    `;
+
+    listBox.appendChild(div);
+  });
+};
+
+// ✅ 로그인 상태 확인 후 친구 요청도 함께 로딩
+document.addEventListener("DOMContentLoaded", async () => {
+  const session = await getSession();
+  if (session) {
+    loadAllVideos?.(); // 영상 불러오기 함수가 있다면 실행
+    loadFriendRequests(); // 친구 요청도 함께 불러오기
+  }
+});
 // ✅ 영상 업로드
 window.uploadVideo = async function () {
   const file = document.getElementById("videoInput").files[0];

@@ -1,0 +1,23 @@
+<!-- friends.html -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>친구 관리</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+  <h2 class="text-2xl font-bold text-center mb-4">🤝 친구 요청 관리</h2>
+
+  <div class="flex gap-2 mb-4">
+    <input id="friendUidInput" type="text" placeholder="친구 UID 입력" class="flex-1 border p-2 rounded" />
+    <button onclick="sendFriendRequest()" class="bg-blue-500 text-white px-4 py-2 rounded">
+      + 친구 요청
+    </button>
+  </div>
+
+  <div id="friendRequestList" class="space-y-2"></div>
+
+  <script type="module" src="./friends.js"></script>
+</body>
+</html>
