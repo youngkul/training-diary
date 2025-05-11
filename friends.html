@@ -6,7 +6,29 @@
   <title>친구 요청 관리</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen py-10 font-sans">
+<body class="bg-gray-100 min-h-screen pb-20 font-sans">
+  <!-- 상단 헤더 (로고 + 햄버거 메뉴) -->
+  <header class="flex justify-between items-center p-4 bg-white shadow fixed top-0 left-0 right-0 z-50">
+    <div class="text-xl font-bold flex items-center space-x-1">
+      <span class="text-red-500">P</span>
+      <span class="text-orange-500">a</span>
+      <span class="text-yellow-500">r</span>
+      <span class="text-green-500">a</span>
+      <span class="text-blue-600 text-2xl">S</span>
+      <span class="text-indigo-500">g</span>
+      <span class="text-purple-500">r</span>
+      <span class="text-pink-500">a</span>
+      <span class="text-gray-700">m</span>
+    </div>
+    <div class="relative">
+      <button id="menuToggle" class="text-2xl">☰</button>
+      <div id="dropdownMenu" class="hidden absolute right-0 mt-2 bg-white border rounded shadow w-40">
+        <button onclick="handleLogout()" class="block w-full text-left px-4 py-2 hover:bg-gray-100">로그아웃</button>
+      </div>
+    </div>
+  </header>
+  <div class="pt-20"></div>
+
   <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">🤝 친구 요청 관리</h1>
 
   <!-- 친구 요청 입력 -->
@@ -47,6 +69,22 @@
     </button>
   </nav>
 
+  <!-- 햄버거 메뉴 토글 스크립트 -->
+  <script>
+    document.getElementById("menuToggle").addEventListener("click", () => {
+      const menu = document.getElementById("dropdownMenu");
+      menu.classList.toggle("hidden");
+    });
+
+    document.addEventListener("click", (e) => {
+      const menu = document.getElementById("dropdownMenu");
+      const toggle = document.getElementById("menuToggle");
+      if (!menu.contains(e.target) && !toggle.contains(e.target)) {
+        menu.classList.add("hidden");
+      }
+    });
+  </script>
+
   <!-- 기본 함수 -->
   <script>
     function goHome() {
@@ -68,4 +106,5 @@
   <script type="module" src="./friends.js"></script>
 </body>
 </html>
+
 

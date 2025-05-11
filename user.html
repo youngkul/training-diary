@@ -6,8 +6,30 @@
   <title>선수 개인 피드</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen font-sans p-4">
+<body class="bg-gray-100 min-h-screen font-sans pb-20">
+  <!-- 🔻 상단 헤더: 로고 + 햄버거 로그아웃 메뉴 -->
+  <header class="flex justify-between items-center p-4 bg-white shadow fixed top-0 left-0 right-0 z-50">
+    <div class="text-xl font-bold flex items-center space-x-1">
+      <span class="text-red-500">P</span>
+      <span class="text-orange-500">a</span>
+      <span class="text-yellow-500">r</span>
+      <span class="text-green-500">a</span>
+      <span class="text-blue-600 text-2xl">S</span>
+      <span class="text-indigo-500">g</span>
+      <span class="text-purple-500">r</span>
+      <span class="text-pink-500">a</span>
+      <span class="text-gray-700">m</span>
+    </div>
+    <div class="relative">
+      <button id="menuToggle" class="text-2xl">☰</button>
+      <div id="dropdownMenu" class="hidden absolute right-0 mt-2 bg-white border rounded shadow w-40">
+        <button onclick="handleLogout()" class="block w-full text-left px-4 py-2 hover:bg-gray-100">로그아웃</button>
+      </div>
+    </div>
+  </header>
+  <div class="pt-20"></div>
 
+  <!-- 🔻 본문 -->
   <h1 class="text-2xl font-bold text-center text-gray-800 mb-4">선수 개인 피드</h1>
   <div id="userName" class="text-center text-gray-600 mb-6"></div>
 
@@ -15,22 +37,48 @@
     <!-- 선수 영상 목록 -->
   </div>
 
-  <!-- Firebase 설정 -->
+  <!-- 🔻 스크립트 -->
+  <script>
+    document.getElementById("menuToggle").addEventListener("click", () => {
+      const menu = document.getElementById("dropdownMenu");
+      menu.classList.toggle("hidden");
+    });
+    document.addEventListener("click", (e) => {
+      const menu = document.getElementById("dropdownMenu");
+      const toggle = document.getElementById("menuToggle");
+      if (!menu.contains(e.target) && !toggle.contains(e.target)) {
+        menu.classList.add("hidden");
+      }
+    });
+    window.handleLogout = async function () {
+      try {
+        const { getAuth, signOut } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
+        const { auth } = await import('./firebase-config.js');
+        await signOut(auth);
+        alert("로그아웃 완료");
+        window.location.href = "/index.html";
+      } catch (e) {
+        console.error("로그아웃 오류:", e.message);
+        alert("로그아웃 실패");
+      }
+    };
+  </script>
+
+  <!-- 🔻 Firebase 및 개인 영상 로딩 -->
   <script type="module">
     import { db } from './firebase-config.js';
     import { collection, getDocs, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-  
+
     const urlParams = new URLSearchParams(window.location.search);
     const uid = urlParams.get("uid");
     if (!uid) {
       alert("잘못된 접근입니다. uid가 필요합니다.");
       location.href = "/";
     }
-  
+
     const videoFeed = document.getElementById("videoFeed");
     const userName = document.getElementById("userName");
-  
-    // ✅ IntersectionObserver: 스크롤로 영상 자동 재생
+
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         const video = entry.target;
@@ -41,7 +89,7 @@
         }
       });
     }, { threshold: 0.5 });
-  
+
     async function loadUserVideos() {
       const videoQuery = query(
         collection(db, "videos"),
@@ -49,38 +97,37 @@
         orderBy("created_at", "desc")
       );
       const snapshot = await getDocs(videoQuery);
-  
+
       if (snapshot.empty) {
         videoFeed.innerHTML = "<p class='text-center text-gray-500'>업로드한 영상이 없습니다.</p>";
         return;
       }
-  
+
       let name = "";
       snapshot.forEach(docSnap => {
         const data = docSnap.data();
         if (!name) name = data.name;
-  
+
         const videoEl = document.createElement("div");
         videoEl.className = "bg-white rounded-xl shadow p-4 space-y-2";
-  
+
         videoEl.innerHTML = `
           <p class="text-sm text-gray-500">${data.created_at?.split("T")[0] || ""} 업로드</p>
           <video src="${data.url}" controls muted playsinline preload="metadata" class="w-full rounded-xl shadow-lg border border-gray-200"></video>
           <p><strong>메모:</strong> ${data.note || "없음"}</p>
         `;
-  
+
         videoFeed.appendChild(videoEl);
-  
+
         const videoTag = videoEl.querySelector("video");
-        if (videoTag) observer.observe(videoTag); // ✅ 자동 재생 감시 시작
+        if (videoTag) observer.observe(videoTag);
       });
-  
+
       userName.innerText = `${name} 님의 영상`;
     }
-  
+
     loadUserVideos();
   </script>
-  
-
 </body>
 </html>
+
