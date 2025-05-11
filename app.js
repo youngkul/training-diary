@@ -257,8 +257,13 @@ async function loadComments(videoId) {
 
   const session = await getSession();
   const currentUid = session?.user?.uid;
-  const container = document.getElementById(`comments-${videoId}`);
-  container.innerHTML = "<p class='font-semibold'>댓글:</p>";
+  const container = document.querySelector(`[data-video-id="${videoId}"]`);
+if (!container) {
+  console.warn(`댓글 컨테이너를 찾을 수 없음: videoId=${videoId}`);
+  return;
+}
+container.innerHTML = "<p class='font-semibold'>댓글:</p>";
+
 
   snapshot.forEach((docSnap) => {
     const comment = { id: docSnap.id, ...docSnap.data() };
