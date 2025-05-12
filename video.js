@@ -91,8 +91,9 @@ document.addEventListener("click", async (e) => {
         await deleteDoc(doc(db, "likes", snap.docs[0].id));
       }
   
-      loadLikedUsers(); // ✅ 목록 다시 불러오기
+      loadLikedUsers(); // ✅ 좋아요 누른 사람 목록 다시 불러오기
     }
   });
+  
   
 document.addEventListener("DOMContentLoaded", loadVideoDetail);
