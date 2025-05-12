@@ -4,7 +4,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  sendEmailVerification
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 // ✅ 회원가입
@@ -16,7 +17,16 @@ window.handleSignup = async function () {
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     await setDoc(doc(db, "users", cred.user.uid), { email, name });
-    alert("회원가입 성공! 이메일 인증 확인 후 로그인 해주세요.");
+
+    // ✅ 이메일 인증 메일 전송
+    await sendEmailVerification(cred.user);
+
+    alert("회원가입 성공! 이메일을 확인해주세요.");
+    
+    // ✅ 인증 전이므로 로그아웃 처리
+    await signOut(auth);
+    window.location.reload();
+
   } catch (error) {
     console.error("회원가입 실패:", error.message);
     alert("회원가입 실패: " + error.message);
@@ -29,7 +39,15 @@ window.handleLogin = async function () {
   const password = document.getElementById("authPassword").value;
 
   try {
-    await signInWithEmailAndPassword(auth, email, password);
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+
+    // ✅ 이메일 인증 확인
+    if (!cred.user.emailVerified) {
+      alert("이메일 인증이 필요합니다. 메일함을 확인해주세요.");
+      await signOut(auth);
+      return;
+    }
+
     alert("로그인 성공!");
     window.location.reload(); // 또는 checkLoginStatus()
   } catch (error) {
@@ -49,6 +67,7 @@ window.handleLogout = async function () {
     alert("로그아웃 실패: " + error.message);
   }
 };
+
 
 
 
