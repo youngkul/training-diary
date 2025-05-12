@@ -29,6 +29,11 @@ window.acceptFriendRequest = async function (requestId, fromUid, toUid) {
   alert("친구 요청을 수락했습니다.");
   loadFriendRequests(); // 목록 다시 불러오기
 };
+  window.toggleNotifications = function () {
+    const box = document.getElementById("notificationBox");
+    box.classList.toggle("hidden");
+    loadNotifications(); // 알림 목록 불러오기
+  };
 
 
 // ✅ 받은 요청 불러오기
@@ -136,6 +141,33 @@ window.uploadVideo = async function () {
   // 새로고침 대신 영상만 다시 로드
   loadAllVideos();
 };
+window.loadNotifications = async function () {
+  const session = await getSession();
+  const uid = session?.user?.uid;
+  if (!uid) return;
+
+  const q = query(
+    collection(db, "notifications"),
+    where("to", "==", uid),
+    orderBy("created_at", "desc")
+  );
+  const snap = await getDocs(q);
+  const list = document.getElementById("notificationList");
+  list.innerHTML = "";
+
+  if (snap.empty) {
+    list.innerHTML = "<p class='text-gray-500'>알림이 없습니다.</p>";
+    return;
+  }
+
+  snap.forEach(doc => {
+    const data = doc.data();
+    const div = document.createElement("div");
+    div.className = "text-sm text-gray-800 border-b pb-1";
+    div.textContent = data.message;
+    list.appendChild(div);
+  });
+};
 
 
 // ✅ 영상 삭제
@@ -211,6 +243,10 @@ videoDiv.innerHTML = `
       class="w-full aspect-video rounded-xl shadow-lg border border-gray-200"
     ></video>
     <p><strong>메모:</strong> <span id="note-${video.id}">${video.note || "없음"}</span></p>
+    <div class="flex items-center gap-2 mt-2">
+      <button onclick="copyVideoLink('${video.id}')" class="text-blue-600 text-sm underline">🔗 공유하기</button>
+      <span id="copied-${video.id}" class="text-green-600 text-sm hidden">링크 복사됨!</span>
+    </div>
 
     ${isOwner ? `
       <input type="text" id="edit-note-${video.id}" placeholder="메모 수정" class="p-2 w-full border rounded" />
@@ -242,6 +278,21 @@ videoDiv.innerHTML = `
     await loadLikes(video.id);
   });
 }
+window.copyVideoLink = function(videoId) {
+  const url = `${window.location.origin}/video.html?id=${videoId}`;
+
+  navigator.clipboard.writeText(url).then(() => {
+    const msg = document.getElementById(`copied-${videoId}`);
+    msg.classList.remove("hidden");
+
+    // 2초 후 메시지 숨기기
+    setTimeout(() => {
+      msg.classList.add("hidden");
+    }, 2000);
+  }).catch(() => {
+    alert("링크 복사 실패. 수동으로 복사해주세요.");
+  });
+};
 
 // ✅ 메모
 window.updateNote = async function (videoId) {
@@ -284,9 +335,28 @@ window.postComment = async function (videoId) {
     created_at: new Date().toISOString()
   });
 
+  // ✅ 댓글 알림용 영상 주인 찾기
+  const videoRef = doc(db, "videos", videoId);
+  const videoSnap = await getDoc(videoRef);
+  const videoOwnerUid = videoSnap.exists() ? videoSnap.data().uid : null;
+
+  // ✅ 자기 자신에게는 알림 안 보내기
+  if (videoOwnerUid && videoOwnerUid !== uid) {
+    await addDoc(collection(db, "notifications"), {
+      type: "comment",
+      from: uid,
+      to: videoOwnerUid,
+      videoId,
+      message: `${name}님이 내 영상에 댓글을 달았습니다.`,
+      isRead: false,
+      created_at: new Date().toISOString()
+    });
+  }
+
   input.value = "";
   loadComments(videoId);
 };
+
 
 window.deleteComment = async function (videoId, commentId) {
   await deleteDoc(doc(db, "comments", commentId));
@@ -343,18 +413,44 @@ async function loadLikes(videoId) {
 window.toggleLike = async function (videoId) {
   const session = await getSession();
   const uid = session?.user?.uid;
+  if (!uid) return;
 
   const q = query(collection(db, "likes"), where("video_id", "==", videoId), where("uid", "==", uid));
   const snapshot = await getDocs(q);
 
+  const userRef = doc(db, "users", uid);
+  const userSnap = await getDoc(userRef);
+  const name = userSnap.exists() ? userSnap.data().name : "익명";
+
+  const videoRef = doc(db, "videos", videoId);
+  const videoSnap = await getDoc(videoRef);
+  const videoOwnerUid = videoSnap.exists() ? videoSnap.data().uid : null;
+
   if (snapshot.empty) {
+    // 좋아요 저장
     await addDoc(collection(db, "likes"), { video_id: videoId, uid });
+
+    // ✅ 알림 저장 (본인 영상이 아닐 때만)
+    if (videoOwnerUid && videoOwnerUid !== uid) {
+      await addDoc(collection(db, "notifications"), {
+        type: "like",
+        from: uid,
+        to: videoOwnerUid,
+        videoId,
+        message: `${name}님이 내 영상에 좋아요를 눌렀습니다.`,
+        isRead: false,
+        created_at: new Date().toISOString()
+      });
+    }
+
   } else {
+    // 좋아요 취소
     await deleteDoc(doc(db, "likes", snapshot.docs[0].id));
   }
 
   loadLikes(videoId);
 };
+
 
 // ✅ 시간 경과 표시
 function timeAgo(dateString) {

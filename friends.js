@@ -14,6 +14,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // ✅ 친구 요청 전송
+// ✅ 친구 요청 전송
 window.sendFriendRequest = async function () {
   const input = document.getElementById("friendUidInput");
   const nameInput = input.value.trim();
@@ -23,14 +24,10 @@ window.sendFriendRequest = async function () {
   const fromUid = session?.user?.uid;
   if (!fromUid) return alert("로그인이 필요합니다.");
 
-  console.log("👉 입력된 이름:", nameInput);
-  console.log("👉 현재 로그인 UID:", fromUid);
-
   try {
     // 1. 이름으로 유저 검색
     const userQuery = query(collection(db, "users"), where("name", "==", nameInput));
     const snap = await getDocs(userQuery);
-    console.log("🔍 이름 검색 결과 수:", snap.size);
 
     if (snap.empty) {
       return alert("해당 이름의 사용자를 찾을 수 없습니다.");
@@ -39,9 +36,6 @@ window.sendFriendRequest = async function () {
     const toDoc = snap.docs[0];
     const toUid = toDoc.id;
     const toName = toDoc.data().name;
-
-    console.log("✅ 수신자 UID:", toUid);
-    console.log("✅ 수신자 이름:", toName);
 
     if (fromUid === toUid) {
       return alert("자기 자신에게는 요청할 수 없습니다.");
@@ -54,16 +48,28 @@ window.sendFriendRequest = async function () {
       where("to", "==", toUid)
     );
     const existingSnap = await getDocs(existingQuery);
-    console.log("🔁 중복 요청 여부:", !existingSnap.empty);
-
     if (!existingSnap.empty) {
       return alert("이미 친구 요청을 보냈습니다.");
     }
+
+    // ✅ 내 이름 가져오기
+    const fromSnap = await getDoc(doc(db, "users", fromUid));
+    const fromName = fromSnap.exists() ? fromSnap.data().name : "익명";
 
     // 3. 요청 저장
     await addDoc(collection(db, "friend_requests"), {
       from: fromUid,
       to: toUid,
+      created_at: new Date().toISOString()
+    });
+
+    // ✅ 알림 저장
+    await addDoc(collection(db, "notifications"), {
+      type: "friend_request",
+      from: fromUid,
+      to: toUid,
+      message: `${fromName}님이 친구 요청을 보냈습니다.`,
+      isRead: false,
       created_at: new Date().toISOString()
     });
 
@@ -79,13 +85,18 @@ window.sendFriendRequest = async function () {
 
 
 
+
 // ✅ 요청 수락 (이름 포함)
 window.acceptFriendRequest = async function (requestId, fromUid, toUid) {
-  const fromSnap = await getDoc(doc(db, "users", fromUid));
-  const toSnap = await getDoc(doc(db, "users", toUid));
+  const fromRef = doc(db, "users", fromUid);
+  const toRef = doc(db, "users", toUid);
+  const fromSnap = await getDoc(fromRef);
+  const toSnap = await getDoc(toRef);
+
   const fromName = fromSnap.exists() ? fromSnap.data().name : "익명";
   const toName = toSnap.exists() ? toSnap.data().name : "익명";
 
+  // 친구 관계 저장
   await addDoc(collection(db, "friends"), {
     uid1: fromUid,
     name1: fromName,
@@ -94,18 +105,22 @@ window.acceptFriendRequest = async function (requestId, fromUid, toUid) {
     created_at: serverTimestamp()
   });
 
+  // ✅ 친구 요청 수락 알림 보내기 (fromUid = 요청자에게 알림)
+  await addDoc(collection(db, "notifications"), {
+    type: "friend_accept",
+    from: toUid, // 알림을 보낸 사람: 수락한 사람
+    to: fromUid, // 알림을 받는 사람: 요청 보낸 사람
+    message: `${toName}님이 친구 요청을 수락했습니다.`,
+    isRead: false,
+    created_at: new Date().toISOString()
+  });
+
   await deleteDoc(doc(db, "friend_requests", requestId));
   alert("친구 요청을 수락했습니다.");
   loadFriendRequests();
   loadFriendList();
 };
 
-// ✅ 요청 거절
-window.rejectFriendRequest = async function (requestId) {
-  await deleteDoc(doc(db, "friend_requests", requestId));
-  alert("친구 요청을 거절했습니다.");
-  loadFriendRequests();
-};
 
 // ✅ 받은 요청 목록
 window.loadFriendRequests = async function () {
