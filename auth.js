@@ -34,6 +34,7 @@ window.handleSignup = async function () {
 };
 
 // ✅ 로그인
+// ✅ 로그인
 window.handleLogin = async function () {
   const email = document.getElementById("authEmail").value;
   const password = document.getElementById("authPassword").value;
@@ -43,18 +44,22 @@ window.handleLogin = async function () {
 
     // ✅ 이메일 인증 확인
     if (!cred.user.emailVerified) {
-      alert("이메일 인증이 필요합니다. 메일함을 확인해주세요.");
+      // 🔄 인증 메일 다시 보내기
+      await sendEmailVerification(cred.user);
+      alert("이메일 인증이 필요합니다. 인증 메일을 다시 보냈습니다. 메일함을 확인해주세요.");
       await signOut(auth);
       return;
     }
 
     alert("로그인 성공!");
-    window.location.reload(); // 또는 checkLoginStatus()
+    window.location.reload();
+
   } catch (error) {
     console.error("로그인 실패:", error.message);
     alert("로그인 실패: " + error.message);
   }
 };
+
 
 // ✅ 로그아웃
 window.handleLogout = async function () {
