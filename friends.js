@@ -23,43 +23,59 @@ window.sendFriendRequest = async function () {
   const fromUid = session?.user?.uid;
   if (!fromUid) return alert("로그인이 필요합니다.");
 
-  // 1. 이름으로 유저 검색 (정확히 일치하는 한 명만 찾음)
-  const userQuery = query(collection(db, "users"), where("name", "==", nameInput));
-  const snap = await getDocs(userQuery);
+  console.log("👉 입력된 이름:", nameInput);
+  console.log("👉 현재 로그인 UID:", fromUid);
 
-  if (snap.empty) {
-    return alert("해당 이름의 사용자를 찾을 수 없습니다.");
+  try {
+    // 1. 이름으로 유저 검색
+    const userQuery = query(collection(db, "users"), where("name", "==", nameInput));
+    const snap = await getDocs(userQuery);
+    console.log("🔍 이름 검색 결과 수:", snap.size);
+
+    if (snap.empty) {
+      return alert("해당 이름의 사용자를 찾을 수 없습니다.");
+    }
+
+    const toDoc = snap.docs[0];
+    const toUid = toDoc.id;
+    const toName = toDoc.data().name;
+
+    console.log("✅ 수신자 UID:", toUid);
+    console.log("✅ 수신자 이름:", toName);
+
+    if (fromUid === toUid) {
+      return alert("자기 자신에게는 요청할 수 없습니다.");
+    }
+
+    // 2. 중복 요청 방지
+    const existingQuery = query(
+      collection(db, "friend_requests"),
+      where("from", "==", fromUid),
+      where("to", "==", toUid)
+    );
+    const existingSnap = await getDocs(existingQuery);
+    console.log("🔁 중복 요청 여부:", !existingSnap.empty);
+
+    if (!existingSnap.empty) {
+      return alert("이미 친구 요청을 보냈습니다.");
+    }
+
+    // 3. 요청 저장
+    await addDoc(collection(db, "friend_requests"), {
+      from: fromUid,
+      to: toUid,
+      created_at: new Date().toISOString()
+    });
+
+    alert(`${toName}님에게 친구 요청을 보냈습니다.`);
+    input.value = "";
+
+  } catch (error) {
+    console.error("❌ 친구 요청 중 오류 발생:", error);
+    alert("친구 요청에 실패했습니다. 콘솔을 확인해주세요.");
   }
-
-  const toDoc = snap.docs[0];
-  const toUid = toDoc.id;
-  const toName = toDoc.data().name;
-
-  if (fromUid === toUid) {
-    return alert("자기 자신에게는 요청할 수 없습니다.");
-  }
-
-  // 2. 중복 요청 방지 (이미 요청 보낸 경우)
-  const existingQuery = query(
-    collection(db, "friend_requests"),
-    where("from", "==", fromUid),
-    where("to", "==", toUid)
-  );
-  const existingSnap = await getDocs(existingQuery);
-  if (!existingSnap.empty) {
-    return alert("이미 친구 요청을 보냈습니다.");
-  }
-
-  // 3. 요청 저장 (to: UID 기준)
-  await addDoc(collection(db, "friend_requests"), {
-    from: fromUid,
-    to: toUid,
-    created_at: new Date().toISOString()
-  });
-
-  alert(`${toName}님에게 친구 요청을 보냈습니다.`);
-  input.value = "";
 };
+
 
 
 
