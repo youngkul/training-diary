@@ -237,7 +237,7 @@ async function loadAllVideos() {
     const video = { id: docSnap.id, ...docSnap.data() };
     const isOwner = video.uid === currentUid; // ✅ 이 줄은 반드시 위에 있어야 함
     if (document.getElementById(`comment-input-${video.id}`)) return;
-    
+
     const videoDiv = document.createElement("div");
     videoDiv.classList.add("space-y-2", "border-b", "pb-4");
 
@@ -427,10 +427,11 @@ async function updateNotificationCount() {
 document.addEventListener("DOMContentLoaded", async () => {
   const session = await getSession();
   if (session) {
-    updateNotificationCount(); // 알림 숫자 표시
-    loadFriendRequests();      // 친구 요청 목록 불러오기
+    await updateNotificationCount(); // 알림 숫자 표시
+    loadFriendRequests();            // 친구 요청 목록 불러오기
   }
 });
+
 
 async function loadComments(videoId) {
   const q = query(collection(db, "comments"), where("video_id", "==", videoId), orderBy("created_at"));
