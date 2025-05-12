@@ -415,6 +415,8 @@ async function updateNotificationCount() {
   const count = snap.size;
 
   const badge = document.getElementById("notiCount");
+  if (!badge) return; // 요소가 없을 경우 오류 방지
+
   if (count > 0) {
     badge.textContent = count;
     badge.classList.remove("hidden");
@@ -422,6 +424,7 @@ async function updateNotificationCount() {
     badge.classList.add("hidden");
   }
 }
+
 
 // ✅ 로그인 완료 후 실행
 document.addEventListener("DOMContentLoaded", async () => {
