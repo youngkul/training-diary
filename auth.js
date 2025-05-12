@@ -42,11 +42,12 @@ window.handleLogin = async function () {
   try {
     const cred = await signInWithEmailAndPassword(auth, email, password);
 
-    // ✅ 이메일 인증 확인
+    // 🔄 인증 상태 강제 갱신
+    await cred.user.reload();
+
     if (!cred.user.emailVerified) {
-      // 🔄 인증 메일 다시 보내기
       await sendEmailVerification(cred.user);
-      alert("이메일 인증이 필요합니다. 인증 메일을 다시 보냈습니다. 메일함을 확인해주세요.");
+      alert("이메일 인증이 필요합니다. 메일을 다시 보냈습니다.");
       await signOut(auth);
       return;
     }
@@ -59,6 +60,7 @@ window.handleLogin = async function () {
     alert("로그인 실패: " + error.message);
   }
 };
+
 
 
 // ✅ 로그아웃
