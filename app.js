@@ -278,21 +278,32 @@ videoDiv.innerHTML = `
     await loadLikes(video.id);
   });
 }
-window.copyVideoLink = function(videoId) {
+window.copyVideoLink = async function(videoId) {
+  const session = await getSession();
+  const uid = session?.user?.uid;
+  if (!uid) {
+    alert("로그인이 필요합니다.");
+    return;
+  }
+
+  const videoRef = doc(db, "videos", videoId);
+  const videoSnap = await getDoc(videoRef);
+
+  if (!videoSnap.exists()) {
+    alert("영상이 존재하지 않습니다.");
+    return;
+  }
+
   const url = `${window.location.origin}/video.html?id=${videoId}`;
+  await navigator.clipboard.writeText(url);
 
-  navigator.clipboard.writeText(url).then(() => {
-    const msg = document.getElementById(`copied-${videoId}`);
-    msg.classList.remove("hidden");
-
-    // 2초 후 메시지 숨기기
-    setTimeout(() => {
-      msg.classList.add("hidden");
-    }, 2000);
-  }).catch(() => {
-    alert("링크 복사 실패. 수동으로 복사해주세요.");
-  });
+  const msg = document.getElementById(`copied-${videoId}`);
+  msg.classList.remove("hidden");
+  setTimeout(() => {
+    msg.classList.add("hidden");
+  }, 2000);
 };
+
 
 // ✅ 메모
 window.updateNote = async function (videoId) {
@@ -338,6 +349,10 @@ window.postComment = async function (videoId) {
   // ✅ 댓글 알림용 영상 주인 찾기
   const videoRef = doc(db, "videos", videoId);
   const videoSnap = await getDoc(videoRef);
+  if (!videoSnap.exists()) {
+    alert("영상이 존재하지 않거나 삭제되었습니다.");
+    return;
+  }
   const videoOwnerUid = videoSnap.exists() ? videoSnap.data().uid : null;
 
   // ✅ 자기 자신에게는 알림 안 보내기
