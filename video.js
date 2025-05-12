@@ -4,6 +4,11 @@ import { getSession } from "./auth-utils.js";
 import {
   doc,
   getDoc,
+  collection,
+  getDocs,
+  query,
+  where,
+  orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // ✅ URL에서 videoId 파라미터 추출
@@ -38,10 +43,37 @@ async function loadVideoDetail() {
       <p class="text-gray-700 text-sm">${data.name || "익명"}님이 업로드한 영상</p>
       <video src="${data.url}" controls class="w-full aspect-video rounded"></video>
       <p><strong>메모:</strong> ${data.note || "없음"}</p>
+      <div>
+        <button id="likeBtn">❤️ 좋아요</button>
+        <p id="likedUsers" class="text-sm text-gray-600 mt-1"></p>
+      </div>
     </div>
   `;
 
   document.getElementById("videoDetail").innerHTML = html;
+  loadLikedUsers();
+}
+
+// ✅ 좋아요 누른 사용자 목록 불러오기
+async function loadLikedUsers() {
+  const q = query(collection(db, "likes"), where("video_id", "==", videoId));
+  const snapshot = await getDocs(q);
+
+  const names = [];
+  for (const docSnap of snapshot.docs) {
+    const like = docSnap.data();
+    const userSnap = await getDoc(doc(db, "users", like.uid));
+    if (userSnap.exists()) {
+      names.push(userSnap.data().name || "익명");
+    }
+  }
+
+  const target = document.getElementById("likedUsers");
+  if (names.length === 0) {
+    target.textContent = "아직 좋아요가 없습니다.";
+  } else {
+    target.textContent = `좋아요 누른 사람: ${names.join(", ")}`;
+  }
 }
 
 document.addEventListener("DOMContentLoaded", loadVideoDetail);
