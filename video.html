@@ -1,16 +1,55 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>영상 보기</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>공유된 영상 보기</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen font-sans p-6">
-  <div id="videoContainer" class="max-w-xl mx-auto bg-white shadow rounded-xl p-6">
-    <p class="text-gray-600 mb-2">불러오는 중...</p>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
+  <div id="videoContainer" class="max-w-xl w-full bg-white rounded-xl shadow-lg p-6 text-center">
+    <p class="text-gray-500">불러오는 중...</p>
   </div>
 
-  <script type="module" src="video.js"></script>
+  <script type="module">
+    import { db } from "./firebase-config.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const container = document.getElementById("videoContainer");
+    const params = new URLSearchParams(window.location.search);
+    const videoId = params.get("id");
+
+    async function loadVideo() {
+      if (!videoId) {
+        container.innerHTML = "<p class='text-red-600'>❌ 영상 ID가 없습니다.</p>";
+        return;
+      }
+
+      try {
+        const videoRef = doc(db, "videos", videoId);
+        const videoSnap = await getDoc(videoRef);
+
+        if (!videoSnap.exists()) {
+          container.innerHTML = "<p class='text-red-600'>❌ 영상을 찾을 수 없습니다.</p>";
+          return;
+        }
+
+        const video = videoSnap.data();
+
+        container.innerHTML = `
+          <div>
+            <p class="text-sm text-gray-600 mb-2">${video.name || "익명"}님이 업로드한 영상</p>
+            <video src="${video.url}" controls class="w-full aspect-video rounded-xl border border-gray-300 shadow"></video>
+            <p class="mt-4 text-left"><strong>메모:</strong> ${video.note || "없음"}</p>
+          </div>
+        `;
+      } catch (err) {
+        console.error("🔥 영상 불러오기 실패:", err);
+        container.innerHTML = "<p class='text-red-600'>🚨 오류가 발생했습니다.</p>";
+      }
+    }
+
+    loadVideo();
+  </script>
 </body>
 </html>
