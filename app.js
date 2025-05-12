@@ -147,16 +147,26 @@ window.deleteVideo = async function (videoId) {
   const uid = session?.user?.uid;
   if (!uid) return alert("로그인이 필요합니다.");
 
+  const videoRef = doc(db, "videos", videoId);
+  const videoSnap = await getDoc(videoRef);
+  if (!videoSnap.exists()) return alert("영상이 존재하지 않습니다.");
+
+  if (videoSnap.data().uid !== uid) {
+    return alert("본인의 영상만 삭제할 수 있습니다.");
+  }
+
+  // 좋아요도 함께 삭제
   const likesQuery = query(collection(db, "likes"), where("video_id", "==", videoId));
   const likesSnap = await getDocs(likesQuery);
   likesSnap.forEach(async (likeDoc) => {
     await deleteDoc(doc(db, "likes", likeDoc.id));
   });
 
-  await deleteDoc(doc(db, "videos", videoId));
+  await deleteDoc(videoRef);
   alert("삭제 완료");
   loadAllVideos();
 };
+
 
 // ✅ 영상 목록 로딩
 async function loadAllVideos() {
@@ -182,40 +192,48 @@ async function loadAllVideos() {
 
   snapshot.forEach(async (docSnap) => {
     const video = { id: docSnap.id, ...docSnap.data() };
+    const isOwner = video.uid === currentUid; // ✅ 이 줄은 반드시 위에 있어야 함
+  
     const videoDiv = document.createElement("div");
     videoDiv.classList.add("space-y-2", "border-b", "pb-4");
 
-    videoDiv.innerHTML = `
-      <div class="bg-white rounded-2xl shadow-lg p-5 space-y-4">
-        <p class="text-sm text-gray-500">${video.name || "익명"}님이 ${timeAgo(video.created_at)}에 업로드했습니다</p>
-        <video
-          src="${video.url}"
-          poster="${video.poster || 'https://placehold.co/640x360?text=썸네일'}"
-          controls
-          muted
-          playsinline
-          preload="metadata"
-          loading="lazy"
-          class="w-full aspect-video rounded-xl shadow-lg border border-gray-200"
-        ></video>
-        <p><strong>메모:</strong> <span id="note-${video.id}">${video.note || "없음"}</span></p>
-        <input type="text" id="edit-note-${video.id}" placeholder="메모 수정" class="p-2 w-full border rounded" />
-        <div class="flex gap-2 mt-2">
-          <button onclick="updateNote('${video.id}')" class="bg-yellow-500 text-white px-3 py-1 rounded">메모 저장</button>
-          <button onclick="deleteNote('${video.id}')" class="bg-gray-600 text-white px-3 py-1 rounded">메모 삭제</button>
-          <button onclick="deleteVideo('${video.id}')" class="bg-red-500 text-white px-3 py-1 rounded">영상 삭제</button>
-        </div>
-        <div class="flex items-center mt-2">
-          <button onclick="toggleLike('${video.id}')" id="like-btn-${video.id}" class="text-red-500 text-xl">❤️</button>
-          <span id="like-count-${video.id}" class="ml-2">0</span>명이 좋아요
-        </div>
-        <div data-video-id="${video.id}" class="comment-box mt-4 text-sm text-gray-700"></div>
-        <div id="comments-${video.id}" class="mt-4 text-sm text-gray-700"></div>
+videoDiv.innerHTML = `
+  <div class="bg-white rounded-2xl shadow-lg p-5 space-y-4">
+    <p class="text-sm text-gray-500">${video.name || "익명"}님이 ${timeAgo(video.created_at)}에 업로드했습니다</p>
+    <video
+      src="${video.url}"
+      poster="${video.poster || 'https://placehold.co/640x360?text=썸네일'}"
+      controls
+      muted
+      playsinline
+      preload="metadata"
+      loading="lazy"
+      class="w-full aspect-video rounded-xl shadow-lg border border-gray-200"
+    ></video>
+    <p><strong>메모:</strong> <span id="note-${video.id}">${video.note || "없음"}</span></p>
 
-        <input type="text" placeholder="댓글 작성" id="comment-input-${video.id}" class="p-2 mt-2 w-full border rounded" />
-        <button onclick="postComment('${video.id}')" class="mt-2 bg-blue-500 text-white px-3 py-1 rounded">댓글 달기</button>
+    ${isOwner ? `
+      <input type="text" id="edit-note-${video.id}" placeholder="메모 수정" class="p-2 w-full border rounded" />
+      <div class="flex gap-2 mt-2">
+        <button onclick="updateNote('${video.id}')" class="bg-yellow-500 text-white px-3 py-1 rounded">메모 저장</button>
+        <button onclick="deleteNote('${video.id}')" class="bg-gray-600 text-white px-3 py-1 rounded">메모 삭제</button>
+        <button onclick="deleteVideo('${video.id}')" class="bg-red-500 text-white px-3 py-1 rounded">영상 삭제</button>
       </div>
-    `;
+    ` : ``}
+
+    <div class="flex items-center mt-2">
+      <button onclick="toggleLike('${video.id}')" id="like-btn-${video.id}" class="text-red-500 text-xl">❤️</button>
+      <span id="like-count-${video.id}" class="ml-2">0</span>명이 좋아요
+    </div>
+
+    <div data-video-id="${video.id}" class="comment-box mt-4 text-sm text-gray-700"></div>
+    <div id="comments-${video.id}" class="mt-4 text-sm text-gray-700"></div>
+
+    <input type="text" placeholder="댓글 작성" id="comment-input-${video.id}" class="p-2 mt-2 w-full border rounded" />
+    <button onclick="postComment('${video.id}')" class="mt-2 bg-blue-500 text-white px-3 py-1 rounded">댓글 달기</button>
+  </div>
+`;
+
 
     videoFeed.appendChild(videoDiv);
     const videoTag = videoDiv.querySelector("video");
