@@ -297,14 +297,21 @@ window.copyVideoLink = async function(videoId) {
   }
 
   const url = `${window.location.origin}/video.html?id=${videoId}`;
-  await navigator.clipboard.writeText(url);
 
-  const msg = document.getElementById(`copied-${videoId}`);
-  msg.classList.remove("hidden");
-  setTimeout(() => {
-    msg.classList.add("hidden");
-  }, 2000);
-  alert("링크가 복사되었습니다. 친구에게 붙여넣어 보내보세요!");
+  try {
+    await navigator.clipboard.writeText(url);
+    const msg = document.getElementById(`copied-${videoId}`);
+    if (msg) {
+      msg.classList.remove("hidden");
+      setTimeout(() => {
+        msg.classList.add("hidden");
+      }, 2000);
+    }
+    alert("📋 링크가 복사되었습니다.\n친구에게 붙여넣어 보내보세요!");
+  } catch (err) {
+    console.warn("❌ 복사 실패:", err);
+    prompt("⚠️ 복사에 실패했어요. 아래 링크를 길게 눌러 복사하세요:", url);
+  }
 };
 
 
