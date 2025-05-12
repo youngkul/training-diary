@@ -304,6 +304,7 @@ window.copyVideoLink = async function(videoId) {
   setTimeout(() => {
     msg.classList.add("hidden");
   }, 2000);
+  alert("링크가 복사되었습니다. 친구에게 붙여넣어 보내보세요!");
 };
 
 
