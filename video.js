@@ -1,4 +1,3 @@
-// video.js
 import { db } from "./firebase-config.js";
 import { getSession } from "./auth-utils.js";
 import {
@@ -8,7 +7,8 @@ import {
   getDocs,
   query,
   where,
-  orderBy
+  addDoc,
+  deleteDoc,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // ✅ URL에서 videoId 파라미터 추출
@@ -33,7 +33,8 @@ async function loadVideoDetail() {
   const snap = await getDoc(videoRef);
 
   if (!snap.exists()) {
-    document.getElementById("videoDetail").innerHTML = "<p class='text-red-500'>영상을 찾을 수 없습니다.</p>";
+    document.getElementById("videoDetail").innerHTML =
+      "<p class='text-red-500'>영상을 찾을 수 없습니다.</p>";
     return;
   }
 
@@ -45,17 +46,22 @@ async function loadVideoDetail() {
       <p><strong>메모:</strong> ${data.note || "없음"}</p>
       <div>
         <button id="likeBtn">❤️ 좋아요</button>
-        <p id="likedUsers" class="text-sm text-gray-600 mt-1"></p>
+        <p id="likedUsers" class="text-sm text-gray-600 mt-1">불러오는 중...</p>
       </div>
     </div>
   `;
 
   document.getElementById("videoDetail").innerHTML = html;
+
+  // ✅ 좋아요 목록 표시
   loadLikedUsers();
 }
 
 // ✅ 좋아요 누른 사용자 목록 불러오기
 async function loadLikedUsers() {
+  const likedUsersElement = document.getElementById("likedUsers");
+  if (!likedUsersElement) return;
+
   const q = query(collection(db, "likes"), where("video_id", "==", videoId));
   const snapshot = await getDocs(q);
 
@@ -68,32 +74,37 @@ async function loadLikedUsers() {
     }
   }
 
-  const target = document.getElementById("likedUsers");
   if (names.length === 0) {
-    target.textContent = "아직 좋아요가 없습니다.";
+    likedUsersElement.textContent = "아직 좋아요가 없습니다.";
   } else {
-    target.textContent = `좋아요 누른 사람: ${names.join(", ")}`;
+    likedUsersElement.textContent = `좋아요 누른 사람: ${names.join(", ")}`;
   }
 }
+
 // ✅ 좋아요 버튼 클릭 시 처리
 document.addEventListener("click", async (e) => {
-    if (e.target.id === "likeBtn") {
-      const session = await getSession();
-      const uid = session?.user?.uid;
-      if (!uid) return alert("로그인이 필요합니다.");
-  
-      const q = query(collection(db, "likes"), where("video_id", "==", videoId), where("uid", "==", uid));
-      const snap = await getDocs(q);
-  
-      if (snap.empty) {
-        await addDoc(collection(db, "likes"), { video_id: videoId, uid });
-      } else {
-        await deleteDoc(doc(db, "likes", snap.docs[0].id));
-      }
-  
-      loadLikedUsers(); // ✅ 좋아요 누른 사람 목록 다시 불러오기
+  if (e.target.id === "likeBtn") {
+    const session = await getSession();
+    const uid = session?.user?.uid;
+    if (!uid) return alert("로그인이 필요합니다.");
+
+    const q = query(
+      collection(db, "likes"),
+      where("video_id", "==", videoId),
+      where("uid", "==", uid)
+    );
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      await addDoc(collection(db, "likes"), { video_id: videoId, uid });
+    } else {
+      await deleteDoc(doc(db, "likes", snap.docs[0].id));
     }
-  });
-  
-  
+
+    loadLikedUsers(); // 좋아요 목록 다시 불러오기
+  }
+});
+
+// ✅ 실행
 document.addEventListener("DOMContentLoaded", loadVideoDetail);
+
