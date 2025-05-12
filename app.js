@@ -75,10 +75,21 @@ window.loadFriendRequests = async function () {
 document.addEventListener("DOMContentLoaded", async () => {
   const session = await getSession();
   if (session) {
-    // loadAllVideos?.(); // 영상 불러오기 함수가 있다면 실행
-    loadFriendRequests(); // 친구 요청도 함께 불러오기
+    localStorage.setItem("uid", session.user.uid);
+    document.getElementById("authSection").classList.add("hidden");
+    document.getElementById("mainSection").classList.remove("hidden");
+    document.getElementById("userInfo").innerText = `로그인됨: ${session.user.email}`;
+
+    loadAllVideos?.();
+    loadFriendRequests?.();
+    updateNotificationCount(); // ✅ 알림 숫자 표시
+  } else {
+    localStorage.removeItem("uid");
+    document.getElementById("authSection").classList.remove("hidden");
+    document.getElementById("mainSection").classList.add("hidden");
   }
 });
+
 // ✅ 영상 업로드
 window.uploadVideo = async function () {
   const uploadBtn = document.querySelector("button[onclick='uploadVideo()']");
@@ -389,6 +400,36 @@ window.deleteComment = async function (videoId, commentId) {
   await deleteDoc(doc(db, "comments", commentId));
   loadComments(videoId);
 };
+async function updateNotificationCount() {
+  const session = await getSession();
+  const uid = session?.user?.uid;
+  if (!uid) return;
+
+  const q = query(
+    collection(db, "notifications"),
+    where("to", "==", uid),
+    where("isRead", "==", false)
+  );
+  const snap = await getDocs(q);
+  const count = snap.size;
+
+  const badge = document.getElementById("notiCount");
+  if (count > 0) {
+    badge.textContent = count;
+    badge.classList.remove("hidden");
+  } else {
+    badge.classList.add("hidden");
+  }
+}
+
+// ✅ 로그인 완료 후 실행
+document.addEventListener("DOMContentLoaded", async () => {
+  const session = await getSession();
+  if (session) {
+    updateNotificationCount(); // 알림 숫자 표시
+    loadFriendRequests();      // 친구 요청 목록 불러오기
+  }
+});
 
 async function loadComments(videoId) {
   const q = query(collection(db, "comments"), where("video_id", "==", videoId), orderBy("created_at"));
