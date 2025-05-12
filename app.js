@@ -7,22 +7,29 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 // ✅ 요청 수락
 window.acceptFriendRequest = async function (requestId, fromUid, toUid) {
+  // 사용자 이름 불러오기
+  const fromRef = doc(db, "users", fromUid);
+  const toRef = doc(db, "users", toUid);
+  const fromSnap = await getDoc(fromRef);
+  const toSnap = await getDoc(toRef);
+
+  const fromName = fromSnap.exists() ? fromSnap.data().name : "익명";
+  const toName = toSnap.exists() ? toSnap.data().name : "익명";
+
+  // friends 컬렉션에 이름 포함 저장
   await addDoc(collection(db, "friends"), {
     uid1: fromUid,
+    name1: fromName,
     uid2: toUid,
+    name2: toName,
     created_at: serverTimestamp()
   });
+
   await deleteDoc(doc(db, "friend_requests", requestId));
   alert("친구 요청을 수락했습니다.");
   loadFriendRequests(); // 목록 다시 불러오기
 };
 
-// ✅ 요청 거절
-window.rejectFriendRequest = async function (requestId) {
-  await deleteDoc(doc(db, "friend_requests", requestId));
-  alert("친구 요청을 거절했습니다.");
-  loadFriendRequests(); // 목록 다시 불러오기
-};
 
 // ✅ 받은 요청 불러오기
 window.loadFriendRequests = async function () {

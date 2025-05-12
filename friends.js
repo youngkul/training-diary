@@ -7,6 +7,7 @@ import {
   getDocs,
   deleteDoc,
   doc,
+  getDoc,
   query,
   where,
   serverTimestamp
@@ -33,16 +34,25 @@ window.sendFriendRequest = async function () {
   input.value = "";
 };
 
-// ✅ 요청 수락
+// ✅ 요청 수락 (이름 포함)
 window.acceptFriendRequest = async function (requestId, fromUid, toUid) {
+  const fromSnap = await getDoc(doc(db, "users", fromUid));
+  const toSnap = await getDoc(doc(db, "users", toUid));
+  const fromName = fromSnap.exists() ? fromSnap.data().name : "익명";
+  const toName = toSnap.exists() ? toSnap.data().name : "익명";
+
   await addDoc(collection(db, "friends"), {
     uid1: fromUid,
+    name1: fromName,
     uid2: toUid,
+    name2: toName,
     created_at: serverTimestamp()
   });
+
   await deleteDoc(doc(db, "friend_requests", requestId));
   alert("친구 요청을 수락했습니다.");
   loadFriendRequests();
+  loadFriendList();
 };
 
 // ✅ 요청 거절
@@ -52,12 +62,11 @@ window.rejectFriendRequest = async function (requestId) {
   loadFriendRequests();
 };
 
-// ✅ 받은 요청 불러오기
+// ✅ 받은 요청 목록
 window.loadFriendRequests = async function () {
   const session = await getSession();
   const currentUid = session?.user?.uid;
   const listBox = document.getElementById("friendRequestList");
-
   if (!currentUid || !listBox) return;
 
   const q = query(collection(db, "friend_requests"), where("to", "==", currentUid));
@@ -70,49 +79,50 @@ window.loadFriendRequests = async function () {
 
   listBox.innerHTML = "";
 
-  snap.forEach(docSnap => {
+  for (const docSnap of snap.docs) {
     const data = docSnap.data();
+    const fromUserSnap = await getDoc(doc(db, "users", data.from));
+    const fromName = fromUserSnap.exists() ? fromUserSnap.data().name : data.from;
+
     const div = document.createElement("div");
     div.className = "flex justify-between items-center border p-3 rounded";
 
     div.innerHTML = `
-      <p class="text-gray-800">${data.from} 님이 친구 요청</p>
+      <p class="text-gray-800">${fromName} 님이 친구 요청</p>
       <div class="flex gap-2">
         <button onclick="acceptFriendRequest('${docSnap.id}', '${data.from}', '${data.to}')" class="text-green-600">수락</button>
         <button onclick="rejectFriendRequest('${docSnap.id}')" class="text-red-600">거절</button>
       </div>
     `;
-
     listBox.appendChild(div);
-  });
+  }
 };
 
-// ✅ 친구 목록 불러오기
+// ✅ 친구 목록 표시 (이름으로)
 window.loadFriendList = async function () {
   const session = await getSession();
   const currentUid = session?.user?.uid;
   const listBox = document.getElementById("friendList");
-
   if (!currentUid || !listBox) return;
 
   const q1 = query(collection(db, "friends"), where("uid1", "==", currentUid));
   const q2 = query(collection(db, "friends"), where("uid2", "==", currentUid));
-
   const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
-  const friends = new Set();
 
-  snap1.forEach(doc => friends.add(doc.data().uid2));
-  snap2.forEach(doc => friends.add(doc.data().uid1));
-
-  if (friends.size === 0) {
+  const allFriends = [...snap1.docs, ...snap2.docs];
+  if (allFriends.length === 0) {
     listBox.innerHTML = "<p class='text-gray-500'>친구가 없습니다.</p>";
     return;
   }
 
   listBox.innerHTML = "";
-  friends.forEach(uid => {
+  allFriends.forEach(docSnap => {
+    const data = docSnap.data();
+    const friendName =
+      data.uid1 === currentUid ? data.name2 || data.uid2 : data.name1 || data.uid1;
+
     const li = document.createElement("li");
-    li.textContent = uid;
+    li.textContent = friendName + " 님";
     li.className = "p-2 border-b";
     listBox.appendChild(li);
   });
@@ -126,3 +136,4 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadFriendList();
   }
 });
+
