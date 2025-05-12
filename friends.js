@@ -16,23 +16,52 @@ import {
 // ✅ 친구 요청 전송
 window.sendFriendRequest = async function () {
   const input = document.getElementById("friendUidInput");
-  const toUid = input.value.trim();
-  if (!toUid) return alert("UID를 입력하세요.");
+  const nameInput = input.value.trim();
+  if (!nameInput) return alert("친구 이름을 입력하세요.");
 
   const session = await getSession();
   const fromUid = session?.user?.uid;
   if (!fromUid) return alert("로그인이 필요합니다.");
-  if (fromUid === toUid) return alert("자기 자신에게는 요청할 수 없습니다.");
 
+  // 1. 이름으로 유저 검색 (정확히 일치하는 한 명만 찾음)
+  const userQuery = query(collection(db, "users"), where("name", "==", nameInput));
+  const snap = await getDocs(userQuery);
+
+  if (snap.empty) {
+    return alert("해당 이름의 사용자를 찾을 수 없습니다.");
+  }
+
+  const toDoc = snap.docs[0];
+  const toUid = toDoc.id;
+  const toName = toDoc.data().name;
+
+  if (fromUid === toUid) {
+    return alert("자기 자신에게는 요청할 수 없습니다.");
+  }
+
+  // 2. 중복 요청 방지 (이미 요청 보낸 경우)
+  const existingQuery = query(
+    collection(db, "friend_requests"),
+    where("from", "==", fromUid),
+    where("to", "==", toUid)
+  );
+  const existingSnap = await getDocs(existingQuery);
+  if (!existingSnap.empty) {
+    return alert("이미 친구 요청을 보냈습니다.");
+  }
+
+  // 3. 요청 저장 (to: UID 기준)
   await addDoc(collection(db, "friend_requests"), {
     from: fromUid,
     to: toUid,
     created_at: new Date().toISOString()
   });
 
-  alert("친구 요청을 보냈습니다!");
+  alert(`${toName}님에게 친구 요청을 보냈습니다.`);
   input.value = "";
 };
+
+
 
 // ✅ 요청 수락 (이름 포함)
 window.acceptFriendRequest = async function (requestId, fromUid, toUid) {
