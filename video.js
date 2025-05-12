@@ -75,5 +75,24 @@ async function loadLikedUsers() {
     target.textContent = `좋아요 누른 사람: ${names.join(", ")}`;
   }
 }
-
+// ✅ 좋아요 버튼 클릭 시 처리
+document.addEventListener("click", async (e) => {
+    if (e.target.id === "likeBtn") {
+      const session = await getSession();
+      const uid = session?.user?.uid;
+      if (!uid) return alert("로그인이 필요합니다.");
+  
+      const q = query(collection(db, "likes"), where("video_id", "==", videoId), where("uid", "==", uid));
+      const snap = await getDocs(q);
+  
+      if (snap.empty) {
+        await addDoc(collection(db, "likes"), { video_id: videoId, uid });
+      } else {
+        await deleteDoc(doc(db, "likes", snap.docs[0].id));
+      }
+  
+      loadLikedUsers(); // ✅ 목록 다시 불러오기
+    }
+  });
+  
 document.addEventListener("DOMContentLoaded", loadVideoDetail);
