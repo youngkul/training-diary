@@ -41,20 +41,23 @@ window.handleLogin = async function () {
   try {
     const cred = await signInWithEmailAndPassword(auth, email, password);
 
-    // ✅ 이메일 인증 확인
+    // ✅ 이메일 인증 여부 확인
     if (!cred.user.emailVerified) {
-      alert("이메일 인증이 필요합니다. 메일함을 확인해주세요.");
-      await signOut(auth);
+      // 인증 안 된 경우 인증 메일 재전송
+      await cred.user.sendEmailVerification();
+      alert("이메일 인증이 완료되지 않았습니다. 인증 메일을 다시 보냈습니다.\n메일함을 확인해주세요.");
+      await signOut(auth); // 인증 전에는 로그아웃
       return;
     }
 
     alert("로그인 성공!");
-    window.location.reload(); // 또는 checkLoginStatus()
+    window.location.reload();
   } catch (error) {
     console.error("로그인 실패:", error.message);
     alert("로그인 실패: " + error.message);
   }
 };
+
 
 // ✅ 로그아웃
 window.handleLogout = async function () {
