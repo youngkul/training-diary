@@ -236,7 +236,8 @@ async function loadAllVideos() {
   snapshot.forEach(async (docSnap) => {
     const video = { id: docSnap.id, ...docSnap.data() };
     const isOwner = video.uid === currentUid; // ✅ 이 줄은 반드시 위에 있어야 함
-  
+    if (document.getElementById(`comment-input-${video.id}`)) return;
+    
     const videoDiv = document.createElement("div");
     videoDiv.classList.add("space-y-2", "border-b", "pb-4");
 
