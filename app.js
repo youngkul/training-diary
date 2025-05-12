@@ -279,6 +279,8 @@ videoDiv.innerHTML = `
   });
 }
 window.copyVideoLink = async function(videoId) {
+  console.log("🔥 공유 시도한 videoId:", videoId);
+
   const session = await getSession();
   const uid = session?.user?.uid;
   if (!uid) {
@@ -326,6 +328,8 @@ window.deleteNote = async function (videoId) {
 
 // ✅ 댓글
 window.postComment = async function (videoId) {
+  console.log("🔥 공유 시도한 videoId:", videoId);
+
   const input = document.getElementById(`comment-input-${videoId}`);
   const content = input.value.trim();
   if (!content) return;
@@ -426,6 +430,8 @@ async function loadLikes(videoId) {
 }
 
 window.toggleLike = async function (videoId) {
+  console.log("🔥 공유 시도한 videoId:", videoId);
+
   const session = await getSession();
   const uid = session?.user?.uid;
   if (!uid) return;
