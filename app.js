@@ -346,15 +346,16 @@ async function loadAllVideos() {
 
     <div class="w-full overflow-hidden">
       <video
-        src="${video.url || ""}"
-        poster="${video.poster || "https://placehold.co/640x360?text=썸네일"}"
-        controls
-        muted
-        playsinline
-        preload="metadata"
-        loading="lazy"
-        class="w-full h-auto max-h-[75vh] object-contain rounded-xl border border-gray-300"
-      ></video>
+  src="${video.url || ''}"
+  poster="${video.poster || 'https://placehold.co/640x360?text=썸네일'}"
+  controls
+  muted
+  playsinline
+  preload="metadata"
+  loading="lazy"
+  class="w-full h-auto aspect-video rounded-xl border border-gray-300 object-cover"
+/>
+
     </div>
 
     <p><strong>메모:</strong> <span id="note-${video.id}">${video.note || "없음"}</span></p>
