@@ -344,7 +344,7 @@ async function loadAllVideos() {
   <div class="bg-white rounded-2xl shadow-lg p-5 space-y-4">
     <p class="text-sm text-gray-500">${video.name || "익명"}님이 ${timeAgo(video.created_at)}에 업로드했습니다</p>
 
-    <div class="w-full">
+    <div class="w-full" style="max-width: 100vw;">
       <video
         src="${video.url}"
         poster="${video.poster || 'https://placehold.co/640x360?text=썸네일'}"
@@ -352,8 +352,8 @@ async function loadAllVideos() {
         muted
         playsinline
         preload="metadata"
-        class="w-full h-auto rounded-xl border border-gray-300"
-        style="aspect-ratio: 16 / 9; object-fit: cover;"
+        class="w-full h-auto rounded-xl shadow border border-gray-300"
+        style="aspect-ratio: 16 / 9; max-width: 100vw; object-fit: cover;"
       ></video>
     </div>
 
