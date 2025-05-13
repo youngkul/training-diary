@@ -212,14 +212,26 @@ window.loadNotifications = async function () {
     return;
   }
 
-  snap.forEach(doc => {
-    const data = doc.data();
+  for (const docSnap of snap.docs) {
+    const data = docSnap.data();
+
+    // ✅ 알림 항목 표시
     const div = document.createElement("div");
     div.className = "text-sm text-gray-800 border-b pb-1";
     div.textContent = data.message;
     list.appendChild(div);
-  });
+
+    // ✅ 읽지 않은 경우 isRead: true로 업데이트
+    if (data.isRead === false) {
+      await updateDoc(doc(db, "notifications", docSnap.id), { isRead: true });
+    }
+  }
+
+  // ✅ 종 뱃지 숨기기
+  const badge = document.getElementById("notiCount");
+  if (badge) badge.classList.add("hidden");
 };
+
 
 
 // ✅ 영상 삭제
