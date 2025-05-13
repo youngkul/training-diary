@@ -120,25 +120,37 @@ window.uploadVideo = async function () {
   const { signedUrl, publicUrl } = await signedUrlResponse.json();
 
   // 1. 먼저 썸네일 추출 (비디오 → 캔버스)
-  const videoURL = URL.createObjectURL(file);
   const thumbnailBlob = await new Promise((resolve, reject) => {
     const videoEl = document.createElement("video");
-    videoEl.src = videoURL;
+    videoEl.src = URL.createObjectURL(file);
     videoEl.muted = true;
     videoEl.playsInline = true;
-    videoEl.currentTime = 0;
-
+    videoEl.preload = "metadata";
+  
     videoEl.addEventListener("loadeddata", () => {
       const canvas = document.createElement("canvas");
       canvas.width = 640;
       canvas.height = 360;
       const ctx = canvas.getContext("2d");
       ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob(blob => resolve(blob), "image/jpeg", 0.8);
+  
+      canvas.toBlob((blob) => {
+        if (blob) {
+          console.log("✅ 썸네일 Blob 생성 성공");
+          resolve(blob);
+        } else {
+          console.error("❌ 썸네일 Blob 생성 실패");
+          reject("썸네일 생성 실패");
+        }
+      }, "image/jpeg", 0.8);
     });
-
-    videoEl.addEventListener("error", reject);
+  
+    videoEl.addEventListener("error", (e) => {
+      console.error("❌ video 엘리먼트 에러:", e);
+      reject("비디오 로딩 실패");
+    });
   });
+  
 
   // 2. 썸네일 업로드
   const thumbFileName = `thumb_${fileName.replace(/\.[^/.]+$/, ".jpg")}`;
