@@ -126,19 +126,23 @@ window.uploadVideo = async function () {
     videoEl.src = videoURL;
     videoEl.muted = true;
     videoEl.playsInline = true;
-    videoEl.currentTime = 0;
-
-    videoEl.addEventListener("loadeddata", () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = 640;
-      canvas.height = 360;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob(blob => resolve(blob), "image/jpeg", 0.8);
+  
+    videoEl.addEventListener("loadedmetadata", () => {
+      videoEl.currentTime = 0.1; // iOS는 반드시 설정 필요
+  
+      videoEl.addEventListener("seeked", () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = 640;
+        canvas.height = 360;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(blob => resolve(blob), "image/jpeg", 0.8);
+      });
     });
-
+  
     videoEl.addEventListener("error", reject);
   });
+  
 
   // 2. 썸네일 업로드
   const thumbFileName = `thumb_${fileName.replace(/\.[^/.]+$/, ".jpg")}`;
