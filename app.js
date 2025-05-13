@@ -341,21 +341,21 @@ async function loadAllVideos() {
     videoDiv.id = `video-card-${video.id}`;
 
     videoDiv.innerHTML = `
-  <div class="bg-white rounded-2xl shadow-lg p-5 space-y-4">
-    <p class="text-sm text-gray-500">${video.name || "익명"}님이 ${timeAgo(video.created_at)}에 업로드했습니다</p>
+  <div class="bg-white rounded-2xl shadow-lg p-0 space-y-4">
+  <p class="text-sm text-gray-500">${video.name || "익명"}님이 ${timeAgo(video.created_at)}에 업로드했습니다</p>
 
-    <div class="w-full" style="max-width: 100vw;">
-      <video
-        src="${video.url}"
-        poster="${video.poster || 'https://placehold.co/640x360?text=썸네일'}"
-        controls
-        muted
-        playsinline
-        preload="metadata"
-        class="w-full h-auto rounded-xl shadow border border-gray-300"
-        style="aspect-ratio: 16 / 9; max-width: 100vw; object-fit: cover;"
-      ></video>
-    </div>
+  <div class="w-screen -mx-5">
+    <video
+      src="${video.url}"
+      poster="${video.poster || 'https://placehold.co/640x360?text=썸네일'}"
+      controls
+      muted
+      playsinline
+      preload="metadata"
+      class="w-full h-[calc(100vw*0.5625)] object-cover"
+    ></video>
+  </div>
+
 
     <p><strong>메모:</strong> <span id="note-${video.id}">${video.note || "없음"}</span></p>
 
