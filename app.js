@@ -114,69 +114,59 @@ window.uploadVideo = async function () {
   const name = userSnap.exists() ? userSnap.data().name : "익명";
 
   const fileName = `${Date.now()}_${file.name}`;
+  let thumbnailBlob = null;
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+  if (!isMobile) {
+    try {
+      thumbnailBlob = await new Promise((resolve, reject) => {
+        const videoEl = document.createElement("video");
+        videoEl.src = URL.createObjectURL(file);
+        videoEl.muted = true;
+        videoEl.playsInline = true;
+        videoEl.preload = "metadata";
+
+        videoEl.addEventListener("loadeddata", () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = 640;
+          canvas.height = 360;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+
+          canvas.toBlob((blob) => {
+            if (blob) {
+              console.log("✅ 썸네일 Blob 생성 성공");
+              resolve(blob);
+            } else {
+              console.warn("❌ 썸네일 Blob 생성 실패");
+              reject("썸네일 생성 실패");
+            }
+          }, "image/jpeg", 0.8);
+        });
+
+        videoEl.addEventListener("error", (e) => {
+          console.error("❌ video 엘리먼트 에러:", e);
+          reject("비디오 로딩 실패");
+        });
+      });
+    } catch (e) {
+      console.warn("📵 썸네일 생략됨:", e);
+    }
+  } else {
+    console.log("📱 모바일 - 썸네일 생성 생략");
+  }
+
+  // 1. 영상 signed URL 받기
   const signedUrlResponse = await fetch(
     `https://us-central1-training-video-b4935.cloudfunctions.net/getSignedUrl?fileName=${encodeURIComponent(fileName)}`
   );
   const { signedUrl, publicUrl } = await signedUrlResponse.json();
 
-  // 1. 먼저 썸네일 추출 (비디오 → 캔버스)
-  const thumbnailBlob = await new Promise((resolve, reject) => {
-    const videoEl = document.createElement("video");
-    videoEl.src = URL.createObjectURL(file);
-    videoEl.muted = true;
-    videoEl.playsInline = true;
-    videoEl.preload = "metadata";
-  
-    videoEl.addEventListener("loadeddata", () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = 640;
-      canvas.height = 360;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-  
-      canvas.toBlob((blob) => {
-        if (blob) {
-          console.log("✅ 썸네일 Blob 생성 성공");
-          resolve(blob);
-        } else {
-          console.error("❌ 썸네일 Blob 생성 실패");
-          reject("썸네일 생성 실패");
-        }
-      }, "image/jpeg", 0.8);
-    });
-  
-    videoEl.addEventListener("error", (e) => {
-      console.error("❌ video 엘리먼트 에러:", e);
-      reject("비디오 로딩 실패");
-    });
-  });
-  
-
-  // 2. 썸네일 업로드
-  const thumbFileName = `thumb_${fileName.replace(/\.[^/.]+$/, ".jpg")}`;
-  const thumbUrlRes = await fetch(
-    `https://us-central1-training-video-b4935.cloudfunctions.net/getSignedUrl?fileName=${encodeURIComponent(thumbFileName)}`
-  );
-  const { signedUrl: thumbSignedUrl, publicUrl: thumbPublicUrl } = await thumbUrlRes.json();
-
-  const thumbUpload = await fetch(thumbSignedUrl, {
-    method: "PUT",
-    headers: { "Content-Type": "image/jpeg" },
-    body: thumbnailBlob,
-  });
-
-  if (!thumbUpload.ok) {
-    alert("썸네일 업로드 실패");
-    uploadBtn.disabled = false;
-    uploadBtn.textContent = "업로드";
-    return;
-  }
-
-  // 3. 영상 업로드
+  // 2. 영상 업로드
   const uploadRes = await fetch(signedUrl, {
     method: "PUT",
     headers: { "Content-Type": file.type },
-    body: file,
+    body: file
   });
 
   if (!uploadRes.ok) {
@@ -186,7 +176,29 @@ window.uploadVideo = async function () {
     return;
   }
 
-  // 4. Firestore 저장
+  // 3. 썸네일 업로드 (선택사항)
+  let thumbPublicUrl = "";
+  if (thumbnailBlob) {
+    const thumbFileName = `thumb_${fileName.replace(/\.[^/.]+$/, ".jpg")}`;
+    const thumbUrlRes = await fetch(
+      `https://us-central1-training-video-b4935.cloudfunctions.net/getSignedUrl?fileName=${encodeURIComponent(thumbFileName)}`
+    );
+    const { signedUrl: thumbSignedUrl, publicUrl: thumbUrl } = await thumbUrlRes.json();
+
+    const thumbUpload = await fetch(thumbSignedUrl, {
+      method: "PUT",
+      headers: { "Content-Type": "image/jpeg" },
+      body: thumbnailBlob
+    });
+
+    if (!thumbUpload.ok) {
+      console.warn("❗ 썸네일 업로드 실패, 계속 진행함");
+    } else {
+      thumbPublicUrl = thumbUrl;
+    }
+  }
+
+  // 4. Firestore에 업로드 기록 저장
   await addDoc(collection(db, "videos"), {
     url: publicUrl,
     poster: thumbPublicUrl,
@@ -203,6 +215,7 @@ window.uploadVideo = async function () {
   uploadBtn.textContent = "업로드";
   loadAllVideos();
 };
+
 
 
 window.loadNotifications = async function () {
