@@ -1,12 +1,15 @@
 /* style.css - 반응형 고급 스타일 */
 
 body {
-    background: linear-gradient(to bottom right, #f1f5f9, #e2e8f0);/* 고급 배경 그라데이션 */
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    color: #1f2937; /* text-gray-800 */
-    margin: 0;
-    padding: 0;
-  }
+  background-color: #121212; /* 아주 진한 다크그레이 */
+  color: #e0e0e0;            /* 옅은 회색 글자 */
+}
+.card {
+  background-color: #1e1e1e;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+}
+
   
   /* 기본 입력 요소 */
   input[type="text"],
