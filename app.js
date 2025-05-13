@@ -381,13 +381,19 @@ async function loadAllVideos() {
 
       <div id="comments-${video.id}" class="mt-4 text-sm text-gray-700"></div>
 
-      <input type="text" placeholder="댓글 작성" id="comment-input-${video.id}"
-  class="p-2 mt-2 w-full border border-gray-600 rounded bg-gray-800 text-white placeholder-gray-400" />
-
-<button onclick="postComment('${video.id}')"
-  class="mt-2 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition">
+      <input
+  type="text"
+  placeholder="댓글 작성"
+  id="comment-input-${video.id}"
+  class="p-2 mt-2 w-full rounded border border-gray-700 bg-gray-800 text-white placeholder-gray-400"
+/>
+<button
+  onclick="postComment('${video.id}')"
+  class="mt-2 bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition"
+>
   댓글 달기
 </button>
+
 
     </div>
   </div>
