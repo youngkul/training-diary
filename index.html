@@ -80,30 +80,26 @@
   
 
   <!-- 로그인 후 메인 섹션 -->
-  <section id="mainSection" class="hidden">
-    <!-- 로그아웃 -->
-    <!-- <div class="max-w-md mx-auto mt-10 p-5 bg-green-100 rounded-xl shadow space-y-3">
-      <p id="userInfo" class="text-center font-medium text-gray-700"></p>
-      <button onclick="handleLogout()" class="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 transition">로그아웃</button>
-    </div> -->
-    <p id="userInfo" class="text-center font-medium text-gray-700"></p>
-
-    <!-- 업로드 섹션 -->
-    <div id="uploadSection" class="transition-toggle max-w-xl mx-auto mt-4 bg-gray-800 rounded-2xl shadow p-6 space-y-4">
-      <h2 class="text-xl font-semibold text-white">훈련 영상 업로드</h2>
-      <textarea id="videoNote" rows="3" placeholder="운동 설명 메모" class="w-full p-3 border border-gray-600 bg-gray-900 text-white rounded-lg resize-none placeholder-gray-400"></textarea>
-      <input type="file" id="videoInput" accept="video/*" class="w-full text-white bg-gray-900 border border-gray-600 rounded-lg p-2" />
-      <button onclick="uploadVideo()" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition">업로드</button>
+  <section id="authSection" class="max-w-md mx-auto mt-20 p-6 bg-gray-900 rounded-2xl shadow-md space-y-5">
+    <h2 class="text-2xl font-bold text-center text-white">로그인 또는 회원가입</h2>
+  
+    <input type="email" id="authEmail" placeholder="이메일"
+      class="w-full p-3 rounded-lg border border-gray-600 bg-gray-800 text-white placeholder-gray-400" />
+    <input type="password" id="authPassword" placeholder="비밀번호"
+      class="w-full p-3 rounded-lg border border-gray-600 bg-gray-800 text-white placeholder-gray-400" />
+    <input type="text" id="authName" placeholder="이름"
+      class="w-full p-3 rounded-lg border border-gray-600 bg-gray-800 text-white placeholder-gray-400" />
+  
+    <div class="flex justify-between gap-2">
+      <button onclick="handleLogin()" class="flex-1 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">로그인</button>
+      <button onclick="handleSignup()" class="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition">회원가입</button>
     </div>
-    
-
-    <!-- 영상 목록 피드 -->
-    <div class="w-full px-0 mt-6 space-y-6" id="videoFeed">
-
-      <h2 class="text-xl font-bold mb-4 text-gray-800">모든 훈련 영상</h2>
-      <!-- JS로 렌더링 -->
+  
+    <div id="signupMessage" class="hidden bg-blue-100 text-blue-800 p-4 rounded-lg text-center mt-4">
+      회원가입이 완료되었습니다. 이메일을 확인해주세요.
     </div>
   </section>
+  
 
 <!-- 하단 네비게이션 바 -->
   <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center h-16 shadow z-50">
