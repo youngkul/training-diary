@@ -114,59 +114,69 @@ window.uploadVideo = async function () {
   const name = userSnap.exists() ? userSnap.data().name : "익명";
 
   const fileName = `${Date.now()}_${file.name}`;
-  let thumbnailBlob = null;
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-  if (!isMobile) {
-    try {
-      thumbnailBlob = await new Promise((resolve, reject) => {
-        const videoEl = document.createElement("video");
-        videoEl.src = URL.createObjectURL(file);
-        videoEl.muted = true;
-        videoEl.playsInline = true;
-        videoEl.preload = "metadata";
-
-        videoEl.addEventListener("loadeddata", () => {
-          const canvas = document.createElement("canvas");
-          canvas.width = 640;
-          canvas.height = 360;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-
-          canvas.toBlob((blob) => {
-            if (blob) {
-              console.log("✅ 썸네일 Blob 생성 성공");
-              resolve(blob);
-            } else {
-              console.warn("❌ 썸네일 Blob 생성 실패");
-              reject("썸네일 생성 실패");
-            }
-          }, "image/jpeg", 0.8);
-        });
-
-        videoEl.addEventListener("error", (e) => {
-          console.error("❌ video 엘리먼트 에러:", e);
-          reject("비디오 로딩 실패");
-        });
-      });
-    } catch (e) {
-      console.warn("📵 썸네일 생략됨:", e);
-    }
-  } else {
-    console.log("📱 모바일 - 썸네일 생성 생략");
-  }
-
-  // 1. 영상 signed URL 받기
   const signedUrlResponse = await fetch(
     `https://us-central1-training-video-b4935.cloudfunctions.net/getSignedUrl?fileName=${encodeURIComponent(fileName)}`
   );
   const { signedUrl, publicUrl } = await signedUrlResponse.json();
 
-  // 2. 영상 업로드
+  // 1. 먼저 썸네일 추출 (비디오 → 캔버스)
+  const thumbnailBlob = await new Promise((resolve, reject) => {
+    const videoEl = document.createElement("video");
+    videoEl.src = URL.createObjectURL(file);
+    videoEl.muted = true;
+    videoEl.playsInline = true;
+    videoEl.preload = "metadata";
+  
+    videoEl.addEventListener("loadeddata", () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 640;
+      canvas.height = 360;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+  
+      canvas.toBlob((blob) => {
+        if (blob) {
+          console.log("✅ 썸네일 Blob 생성 성공");
+          resolve(blob);
+        } else {
+          console.error("❌ 썸네일 Blob 생성 실패");
+          reject("썸네일 생성 실패");
+        }
+      }, "image/jpeg", 0.8);
+    });
+  
+    videoEl.addEventListener("error", (e) => {
+      console.error("❌ video 엘리먼트 에러:", e);
+      reject("비디오 로딩 실패");
+    });
+  });
+  
+
+  // 2. 썸네일 업로드
+  const thumbFileName = `thumb_${fileName.replace(/\.[^/.]+$/, ".jpg")}`;
+  const thumbUrlRes = await fetch(
+    `https://us-central1-training-video-b4935.cloudfunctions.net/getSignedUrl?fileName=${encodeURIComponent(thumbFileName)}`
+  );
+  const { signedUrl: thumbSignedUrl, publicUrl: thumbPublicUrl } = await thumbUrlRes.json();
+
+  const thumbUpload = await fetch(thumbSignedUrl, {
+    method: "PUT",
+    headers: { "Content-Type": "image/jpeg" },
+    body: thumbnailBlob,
+  });
+
+  if (!thumbUpload.ok) {
+    alert("썸네일 업로드 실패");
+    uploadBtn.disabled = false;
+    uploadBtn.textContent = "업로드";
+    return;
+  }
+
+  // 3. 영상 업로드
   const uploadRes = await fetch(signedUrl, {
     method: "PUT",
     headers: { "Content-Type": file.type },
-    body: file
+    body: file,
   });
 
   if (!uploadRes.ok) {
@@ -176,29 +186,7 @@ window.uploadVideo = async function () {
     return;
   }
 
-  // 3. 썸네일 업로드 (선택사항)
-  let thumbPublicUrl = "";
-  if (thumbnailBlob) {
-    const thumbFileName = `thumb_${fileName.replace(/\.[^/.]+$/, ".jpg")}`;
-    const thumbUrlRes = await fetch(
-      `https://us-central1-training-video-b4935.cloudfunctions.net/getSignedUrl?fileName=${encodeURIComponent(thumbFileName)}`
-    );
-    const { signedUrl: thumbSignedUrl, publicUrl: thumbUrl } = await thumbUrlRes.json();
-
-    const thumbUpload = await fetch(thumbSignedUrl, {
-      method: "PUT",
-      headers: { "Content-Type": "image/jpeg" },
-      body: thumbnailBlob
-    });
-
-    if (!thumbUpload.ok) {
-      console.warn("❗ 썸네일 업로드 실패, 계속 진행함");
-    } else {
-      thumbPublicUrl = thumbUrl;
-    }
-  }
-
-  // 4. Firestore에 업로드 기록 저장
+  // 4. Firestore 저장
   await addDoc(collection(db, "videos"), {
     url: publicUrl,
     poster: thumbPublicUrl,
@@ -215,7 +203,6 @@ window.uploadVideo = async function () {
   uploadBtn.textContent = "업로드";
   loadAllVideos();
 };
-
 
 
 window.loadNotifications = async function () {
@@ -300,6 +287,7 @@ async function loadAllVideos() {
   const session = await getSession();
   const currentUid = session?.user?.uid;
 
+  // ✅ 영상 자동 재생/정지 최적화
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       const video = entry.target;
@@ -313,61 +301,63 @@ async function loadAllVideos() {
 
   snapshot.forEach(async (docSnap) => {
     const video = { id: docSnap.id, ...docSnap.data() };
-    const isOwner = video.uid === currentUid; // ✅ 이 줄은 반드시 위에 있어야 함
-    if (document.getElementById(`comment-input-${video.id}`)) return;
+    const isOwner = video.uid === currentUid;
 
     const videoDiv = document.createElement("div");
     videoDiv.classList.add("space-y-2", "border-b", "pb-4");
 
-videoDiv.innerHTML = `
-  <div class="bg-white rounded-2xl shadow-lg p-5 space-y-4">
-    <p class="text-sm text-gray-500">${video.name || "익명"}님이 ${timeAgo(video.created_at)}에 업로드했습니다</p>
-    <video
-      src="${video.url}"
-      poster="${video.poster || 'https://placehold.co/640x360?text=썸네일'}"
-      controls
-      muted
-      playsinline
-      preload="metadata"
-      loading="lazy"
-      class="w-full aspect-video rounded-xl shadow-lg border border-gray-200"
-    ></video>
-    <p><strong>메모:</strong> <span id="note-${video.id}">${video.note || "없음"}</span></p>
-    <div class="flex items-center gap-2 mt-2">
-      <button onclick="copyVideoLink('${video.id}')" class="text-blue-600 text-sm underline">🔗 공유하기</button>
-      <span id="copied-${video.id}" class="text-green-600 text-sm hidden">링크 복사됨!</span>
-    </div>
+    videoDiv.innerHTML = `
+      <div class="bg-white rounded-2xl shadow-lg p-5 space-y-4">
+        <p class="text-sm text-gray-500">${video.name || "익명"}님이 ${timeAgo(video.created_at)}에 업로드했습니다</p>
+        <video
+          src="${video.url}"
+          poster="${video.poster || 'https://placehold.co/640x360?text=No+Thumbnail'}"
+          controls
+          muted
+          playsinline
+          preload="metadata"
+          loading="lazy"
+          class="w-full aspect-video rounded-xl shadow border border-gray-200"
+        ></video>
+        <p><strong>메모:</strong> <span id="note-${video.id}">${video.note || "없음"}</span></p>
 
-    ${isOwner ? `
-      <input type="text" id="edit-note-${video.id}" placeholder="메모 수정" class="p-2 w-full border rounded" />
-      <div class="flex gap-2 mt-2">
-        <button onclick="updateNote('${video.id}')" class="bg-yellow-500 text-white px-3 py-1 rounded">메모 저장</button>
-        <button onclick="deleteNote('${video.id}')" class="bg-gray-600 text-white px-3 py-1 rounded">메모 삭제</button>
-        <button onclick="deleteVideo('${video.id}')" class="bg-red-500 text-white px-3 py-1 rounded">영상 삭제</button>
+        <div class="flex items-center gap-2 mt-2">
+          <button onclick="copyVideoLink('${video.id}')" class="text-blue-600 text-sm underline">🔗 공유하기</button>
+          <span id="copied-${video.id}" class="text-green-600 text-sm hidden">링크 복사됨!</span>
+        </div>
+
+        ${isOwner ? `
+          <input type="text" id="edit-note-${video.id}" placeholder="메모 수정" class="p-2 w-full border rounded" />
+          <div class="flex gap-2 mt-2">
+            <button onclick="updateNote('${video.id}')" class="bg-yellow-500 text-white px-3 py-1 rounded">메모 저장</button>
+            <button onclick="deleteNote('${video.id}')" class="bg-gray-600 text-white px-3 py-1 rounded">메모 삭제</button>
+            <button onclick="deleteVideo('${video.id}')" class="bg-red-500 text-white px-3 py-1 rounded">영상 삭제</button>
+          </div>
+        ` : ``}
+
+        <div class="flex items-center mt-2">
+          <button onclick="toggleLike('${video.id}')" id="like-btn-${video.id}" class="text-red-500 text-xl">❤️</button>
+          <span id="like-count-${video.id}" class="ml-2">0</span>명이 좋아요
+        </div>
+
+        <div id="comments-${video.id}" class="mt-4 text-sm text-gray-700"></div>
+
+        <input type="text" placeholder="댓글 작성" id="comment-input-${video.id}" class="p-2 mt-2 w-full border rounded" />
+        <button onclick="postComment('${video.id}')" class="mt-2 bg-blue-500 text-white px-3 py-1 rounded">댓글 달기</button>
       </div>
-    ` : ``}
-
-    <div class="flex items-center mt-2">
-      <button onclick="toggleLike('${video.id}')" id="like-btn-${video.id}" class="text-red-500 text-xl">❤️</button>
-      <span id="like-count-${video.id}" class="ml-2">0</span>명이 좋아요
-    </div>
-
-    <div data-video-id="${video.id}" class="comment-box mt-4 text-sm text-gray-700"></div>
-    <div id="comments-${video.id}" class="mt-4 text-sm text-gray-700"></div>
-
-    <input type="text" placeholder="댓글 작성" id="comment-input-${video.id}" class="p-2 mt-2 w-full border rounded" />
-    <button onclick="postComment('${video.id}')" class="mt-2 bg-blue-500 text-white px-3 py-1 rounded">댓글 달기</button>
-  </div>
-`;
-
+    `;
 
     videoFeed.appendChild(videoDiv);
+
+    // ✅ 영상이 화면에 보일 때만 재생
     const videoTag = videoDiv.querySelector("video");
     if (videoTag) observer.observe(videoTag);
+
     await loadComments(video.id);
     await loadLikes(video.id);
   });
 }
+
 window.copyVideoLink = async function(videoId) {
   console.log("🔥 공유 시도한 videoId:", videoId);
 
