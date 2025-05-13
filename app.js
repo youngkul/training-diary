@@ -125,52 +125,59 @@ window.uploadVideo = async function () {
   videoEl.src = videoURL; 
   // ✅ 썸네일 Blob 추출 (모바일 호환)
   // ✅ 썸네일 Blob 생성 (모바일 대응 최종판)
-const thumbnailBlob = await new Promise((resolve, reject) => {
-  const videoEl = document.createElement("video");
-  videoEl.src = URL.createObjectURL(file);
-  videoEl.muted = true;
-  videoEl.playsInline = true;
-  videoEl.preload = "auto";
-  videoEl.style.display = "none";
-  document.body.appendChild(videoEl);
-
-  // ✅ iOS 대응: 영상 metadata 로드 후 currentTime 설정
-  videoEl.addEventListener("loadedmetadata", () => {
-    if (videoEl.duration > 0.1) {
-      videoEl.currentTime = 0.1;
-    }
-  });
-
-  videoEl.addEventListener("canplay", () => {
-    try {
-      const canvas = document.createElement("canvas");
-      canvas.width = 640;
-      canvas.height = 360;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob((blob) => {
-        document.body.removeChild(videoEl);
-        if (blob) {
-          console.log("✅ 썸네일 Blob 생성 성공");
-          resolve(blob);
-        } else {
-          console.warn("❌ 썸네일 생성 실패 → 썸네일 없이 계속 진행");
-          resolve(null); // ❗ 실패해도 계속 진행
-        }
-      }, "image/jpeg", 0.8);
-    } catch (err) {
+  const thumbnailBlob = await new Promise((resolve) => {
+    const videoEl = document.createElement("video");
+    videoEl.src = URL.createObjectURL(file);
+    videoEl.muted = true;
+    videoEl.playsInline = true;
+    videoEl.preload = "auto";
+    videoEl.style.display = "none";
+    document.body.appendChild(videoEl);
+  
+    let timeout = setTimeout(() => {
+      console.warn("⏰ 썸네일 생성 타임아웃 → 건너뜀");
       document.body.removeChild(videoEl);
-      console.warn("❌ drawImage 실패 → 썸네일 없이 계속 진행", err);
       resolve(null);
-    }
+    }, 5000); // 5초 이내 동작 안 하면 포기
+  
+    videoEl.addEventListener("loadedmetadata", () => {
+      if (videoEl.duration > 0.1) videoEl.currentTime = 0.1;
+    });
+  
+    videoEl.addEventListener("canplay", () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = 640;
+        canvas.height = 360;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          clearTimeout(timeout);
+          document.body.removeChild(videoEl);
+          if (blob) {
+            console.log("✅ 썸네일 생성 성공");
+            resolve(blob);
+          } else {
+            console.warn("❌ 썸네일 실패 → 업로드는 계속");
+            resolve(null);
+          }
+        }, "image/jpeg", 0.8);
+      } catch (e) {
+        clearTimeout(timeout);
+        document.body.removeChild(videoEl);
+        console.warn("❌ drawImage 실패 → 업로드는 계속", e);
+        resolve(null);
+      }
+    });
+  
+    videoEl.addEventListener("error", () => {
+      clearTimeout(timeout);
+      document.body.removeChild(videoEl);
+      console.warn("❌ video 로드 실패 → 업로드는 계속");
+      resolve(null);
+    });
   });
-
-  videoEl.addEventListener("error", (e) => {
-    document.body.removeChild(videoEl);
-    console.warn("❌ 비디오 로딩 실패 → 썸네일 없이 계속 진행", e);
-    resolve(null);
-  });
-});
+  
 
   
   
