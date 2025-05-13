@@ -559,27 +559,31 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
 async function loadComments(videoId) {
+  const container = document.getElementById(`comments-${videoId}`);
+  if (!container) return console.warn(`❌ 댓글 컨테이너 없음: comments-${videoId}`);
+
+  container.innerHTML = "<p class='font-semibold text-white'>댓글:</p>";
+
   const q = query(collection(db, "comments"), where("video_id", "==", videoId), orderBy("created_at"));
   const snapshot = await getDocs(q);
 
   const session = await getSession();
   const currentUid = session?.user?.uid;
-  const container = document.getElementById(`comments-${videoId}`);
-  container.innerHTML = "<p class='font-semibold'>댓글:</p>";
 
   snapshot.forEach((docSnap) => {
     const comment = { id: docSnap.id, ...docSnap.data() };
-    const div = document.createElement("div");
-    div.classList.add("flex", "justify-between", "items-center");
 
-    const p = document.createElement("p");
-    p.textContent = `${comment.name || "익명"}: ${comment.content}`;
-    div.appendChild(p);
+    const div = document.createElement("div");
+    div.className = "flex justify-between items-center py-1 px-2 rounded bg-gray-800 text-gray-200";
+
+    const text = document.createElement("p");
+    text.textContent = `${comment.name || "익명"}: ${comment.content}`;
+    div.appendChild(text);
 
     if (comment.uid === currentUid) {
       const btn = document.createElement("button");
       btn.textContent = "삭제";
-      btn.className = "text-sm text-red-500 ml-2";
+      btn.className = "text-sm text-red-400 ml-2 hover:underline";
       btn.onclick = () => deleteComment(videoId, comment.id);
       div.appendChild(btn);
     }
@@ -587,6 +591,7 @@ async function loadComments(videoId) {
     container.appendChild(div);
   });
 }
+
 
 // ✅ 좋아요
 async function loadLikes(videoId) {
