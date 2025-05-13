@@ -165,19 +165,26 @@
     }
   </script>
   <script>
-    document.getElementById("menuToggle").addEventListener("click", () => {
-      const menu = document.getElementById("dropdownMenu");
-      menu.classList.toggle("hidden");
-    });
+    document.addEventListener("DOMContentLoaded", () => {
+      const menuToggle = document.getElementById("menuToggle");
+      const dropdownMenu = document.getElementById("dropdownMenu");
   
-    document.addEventListener("click", (e) => {
-      const menu = document.getElementById("dropdownMenu");
-      const toggle = document.getElementById("menuToggle");
-      if (!menu.contains(e.target) && !toggle.contains(e.target)) {
-        menu.classList.add("hidden");
+      if (menuToggle && dropdownMenu) {
+        menuToggle.addEventListener("click", (e) => {
+          e.stopPropagation(); // ✅ 메뉴 클릭 시 외부 클릭 이벤트 막기
+          dropdownMenu.classList.toggle("hidden");
+        });
+  
+        document.addEventListener("click", (e) => {
+          // ✅ 메뉴 외부 클릭 시 닫기
+          if (!dropdownMenu.contains(e.target) && !menuToggle.contains(e.target)) {
+            dropdownMenu.classList.add("hidden");
+          }
+        });
       }
     });
   </script>
+  
   
   <!-- Firebase 관련 모듈 -->
   <script type="module" src="./firebase-config.js?v=2"></script>
