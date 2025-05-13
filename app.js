@@ -121,39 +121,47 @@ window.uploadVideo = async function () {
 
   // 1. 먼저 썸네일 추출 (비디오 → 캔버스)
   const videoURL = URL.createObjectURL(file);
-  // ✅ 썸네일 Blob 추출 (모바일 호환)
-const thumbnailBlob = await new Promise((resolve, reject) => {
   const videoEl = document.createElement("video");
-  videoEl.src = URL.createObjectURL(file);
-  videoEl.muted = true;
-  videoEl.playsInline = true;
-  videoEl.preload = "auto";
-
-  // iOS와 Android 대응
-  videoEl.addEventListener("canplay", () => {
-    try {
-      const canvas = document.createElement("canvas");
-      canvas.width = 640;
-      canvas.height = 360;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob((blob) => {
-        if (blob) {
-          console.log("✅ 썸네일 Blob 생성 성공");
-          resolve(blob);
-        } else {
-          reject("❌ 썸네일 생성 실패");
-        }
-      }, "image/jpeg", 0.8);
-    } catch (err) {
-      reject("❌ drawImage 실패: " + err.message);
-    }
+  videoEl.src = videoURL; 
+  // ✅ 썸네일 Blob 추출 (모바일 호환)
+  const thumbnailBlob = await new Promise((resolve, reject) => {
+    const videoEl = document.createElement("video");
+    videoEl.src = URL.createObjectURL(file);
+    videoEl.muted = true;
+    videoEl.playsInline = true;
+    videoEl.preload = "auto";
+    videoEl.style.display = "none";
+    document.body.appendChild(videoEl);
+    videoEl.currentTime = 0.1;
+    videoEl.addEventListener("canplay", () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = 640;
+        canvas.height = 360;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          document.body.removeChild(videoEl);
+          if (blob) {
+            console.log("✅ 썸네일 Blob 생성 성공");
+            resolve(blob);
+          } else {
+            reject("❌ 썸네일 생성 실패");
+          }
+        }, "image/jpeg", 0.8);
+      } catch (err) {
+        document.body.removeChild(videoEl);
+        reject("❌ drawImage 실패: " + err.message);
+      }
+    });
+  
+    videoEl.addEventListener("error", (e) => {
+      document.body.removeChild(videoEl);
+      reject("❌ 비디오 로딩 실패: " + e.message);
+    });
   });
-
-  videoEl.addEventListener("error", (e) => {
-    reject("❌ 비디오 로딩 실패: " + e.message);
-  });
-});
+  
+  
 
 
   // 2. 썸네일 업로드
