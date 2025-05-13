@@ -279,8 +279,6 @@ window.deleteVideo = async function (videoId) {
 // ✅ 영상 목록 로딩
 async function loadAllVideos() {
   const videoFeed = document.getElementById("videoFeed");
-  if (!videoFeed) return;
-
   videoFeed.innerHTML = "";
 
   const q = query(collection(db, "videos"), orderBy("created_at", "desc"));
@@ -289,10 +287,22 @@ async function loadAllVideos() {
   const session = await getSession();
   const currentUid = session?.user?.uid;
 
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const video = entry.target;
+      if (entry.isIntersecting) {
+        video.play().catch(() => {});
+      } else {
+        video.pause();
+      }
+    });
+  }, { threshold: 0.5 });
+
   for (const docSnap of snapshot.docs) {
     const video = { id: docSnap.id, ...docSnap.data() };
     const isOwner = video.uid === currentUid;
 
+    // ✅ videoDiv 먼저 만들고
     const videoDiv = document.createElement("div");
     videoDiv.classList.add("space-y-2", "border-b", "pb-4");
 
@@ -306,6 +316,7 @@ async function loadAllVideos() {
           muted
           playsinline
           preload="metadata"
+          loading="lazy"
           class="w-full aspect-video rounded-xl shadow-lg border border-gray-200"
         ></video>
         <p><strong>메모:</strong> <span id="note-${video.id}">${video.note || "없음"}</span></p>
@@ -324,7 +335,7 @@ async function loadAllVideos() {
           <span id="like-count-${video.id}" class="ml-2">0</span>명이 좋아요
         </div>
 
-        <div class="comment-box mt-4 text-sm text-gray-700"></div>
+        <div data-video-id="${video.id}" class="comment-box mt-4 text-sm text-gray-700"></div>
         <div id="comments-${video.id}" class="mt-4 text-sm text-gray-700"></div>
 
         <input type="text" placeholder="댓글 작성" id="comment-input-${video.id}" class="p-2 mt-2 w-full border rounded" />
@@ -332,12 +343,19 @@ async function loadAllVideos() {
       </div>
     `;
 
+    // ✅ 먼저 videoFeed에 붙이고
     videoFeed.appendChild(videoDiv);
 
+    // ✅ 비디오 요소 observer 등록
+    const videoTag = videoDiv.querySelector("video");
+    if (videoTag) observer.observe(videoTag);
+
+    // ✅ 그 다음에 댓글/좋아요 로드
     await loadComments(video.id);
     await loadLikes(video.id);
   }
 }
+
 
 
 window.copyVideoLink = async function(videoId) {
