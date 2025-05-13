@@ -343,20 +343,17 @@ async function loadAllVideos() {
     videoDiv.innerHTML = `
   <div class="bg-white rounded-2xl shadow-lg p-5 space-y-4">
     <p class="text-sm text-gray-500">${video.name || "익명"}님이 ${timeAgo(video.created_at)}에 업로드했습니다</p>
-
-    <div class="w-full overflow-hidden">
-      <video
-  src="${video.url || ''}"
-  poster="${video.poster || 'https://placehold.co/640x360?text=썸네일'}"
-  controls
-  muted
-  playsinline
-  preload="metadata"
-  loading="lazy"
-  class="w-full h-auto aspect-video rounded-xl border border-gray-300 object-cover"
-/>
-
-    </div>
+    
+    <video
+      src="${video.url}"
+      poster="${video.poster || 'https://placehold.co/640x360?text=썸네일'}"
+      controls
+      muted
+      playsinline
+      preload="metadata"
+      loading="lazy"
+      class="w-full h-auto aspect-video rounded-xl border border-gray-300 object-cover"
+    ></video>
 
     <p><strong>메모:</strong> <span id="note-${video.id}">${video.note || "없음"}</span></p>
 
@@ -380,6 +377,7 @@ async function loadAllVideos() {
     </div>
 
     <div id="comments-${video.id}" class="mt-4 text-sm text-gray-700"></div>
+
     <input type="text" placeholder="댓글 작성" id="comment-input-${video.id}" class="p-2 mt-2 w-full border rounded" />
     <button onclick="postComment('${video.id}')" class="mt-2 bg-blue-500 text-white px-3 py-1 rounded">댓글 달기</button>
   </div>
