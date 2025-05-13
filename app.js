@@ -341,20 +341,21 @@ async function loadAllVideos() {
     videoDiv.id = `video-card-${video.id}`;
 
     videoDiv.innerHTML = `
-  <div class="bg-gray-900 rounded-2xl shadow-lg p-5 space-y-4 text-white">
+   <div class="bg-gray-900 w-full rounded-none shadow-none text-white">
 
     <p class="text-sm text-gray-500 p-4">${video.name || "익명"}님이 ${timeAgo(video.created_at)}에 업로드했습니다</p>
 
     <div class="w-full">
       <video
-        src="${video.url}"
-        poster="${video.poster || 'https://placehold.co/640x360?text=썸네일'}"
-        controls
-        muted
-        playsinline
-        preload="metadata"
-        class="w-full aspect-video object-cover"
-      ></video>
+      src="${video.url}"
+      poster="${video.poster || 'https://placehold.co/640x360?text=썸네일'}"
+      controls
+      muted
+      playsinline
+      preload="metadata"
+      class="w-full h-[calc(100vw*9/16)] object-cover"
+    ></video>
+
     </div>
 
     <div class="p-4 space-y-2 text-sm text-gray-200">
