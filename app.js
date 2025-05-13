@@ -302,6 +302,7 @@ async function loadAllVideos() {
   snapshot.forEach(async (docSnap) => {
     const video = { id: docSnap.id, ...docSnap.data() };
     const isOwner = video.uid === currentUid;
+    if (document.getElementById(`comment-input-${video.id}`)) return;
 
     const videoDiv = document.createElement("div");
     videoDiv.classList.add("space-y-2", "border-b", "pb-4");
@@ -496,12 +497,17 @@ async function updateNotificationCount() {
 
 // ✅ 로그인 완료 후 실행
 document.addEventListener("DOMContentLoaded", async () => {
+  if (window._videosLoaded) return; // 중복 방지
+  window._videosLoaded = true;
+
   const session = await getSession();
   if (session) {
     await updateNotificationCount(); // 알림 숫자 표시
     loadFriendRequests();            // 친구 요청 목록 불러오기
+    loadAllVideos();                 // 🔥 여기에만 1번 호출
   }
 });
+
 
 
 async function loadComments(videoId) {
