@@ -341,48 +341,51 @@ async function loadAllVideos() {
     videoDiv.id = `video-card-${video.id}`;
 
     videoDiv.innerHTML = `
-  <div class="w-full">
-  <video
-    src="${video.url}"
-    poster="${video.poster || 'https://placehold.co/640x360?text=썸네일'}"
-    controls
-    muted
-    playsinline
-    preload="metadata"
-    class="rounded-xl shadow border border-gray-300 w-full"
-    style="aspect-ratio: 16/9; max-width: 100%; height: auto; object-fit: cover;"
-  ></video>
-</div>
+  <div class="bg-white shadow-lg rounded-xl overflow-hidden">
+    <p class="text-sm text-gray-500 p-4">${video.name || "익명"}님이 ${timeAgo(video.created_at)}에 업로드했습니다</p>
 
-
-
-    <p><strong>메모:</strong> <span id="note-${video.id}">${video.note || "없음"}</span></p>
-
-    <div class="flex items-center gap-2 mt-2">
-      <button onclick="copyVideoLink('${video.id}')" class="text-blue-600 text-sm underline">🔗 공유하기</button>
-      <span id="copied-${video.id}" class="text-green-600 text-sm hidden">링크 복사됨!</span>
+    <div class="w-full">
+      <video
+        src="${video.url}"
+        poster="${video.poster || 'https://placehold.co/640x360?text=썸네일'}"
+        controls
+        muted
+        playsinline
+        preload="metadata"
+        class="w-full aspect-video object-cover"
+      ></video>
     </div>
 
-    ${isOwner ? `
-      <input type="text" id="edit-note-${video.id}" placeholder="메모 수정" class="p-2 w-full border rounded" />
-      <div class="flex gap-2 mt-2">
-        <button onclick="updateNote('${video.id}')" class="bg-yellow-500 text-white px-3 py-1 rounded">메모 저장</button>
-        <button onclick="deleteNote('${video.id}')" class="bg-gray-600 text-white px-3 py-1 rounded">메모 삭제</button>
-        <button onclick="deleteVideo('${video.id}')" class="bg-red-500 text-white px-3 py-1 rounded">영상 삭제</button>
+    <div class="p-4 space-y-2 text-sm text-gray-800">
+      <p><strong>메모:</strong> <span id="note-${video.id}">${video.note || "없음"}</span></p>
+
+      <div class="flex items-center gap-2">
+        <button onclick="copyVideoLink('${video.id}')" class="text-blue-600 text-sm underline">🔗 공유하기</button>
+        <span id="copied-${video.id}" class="text-green-600 text-sm hidden">링크 복사됨!</span>
       </div>
-    ` : ``}
 
-    <div class="flex items-center mt-2">
-      <button onclick="toggleLike('${video.id}')" id="like-btn-${video.id}" class="text-red-500 text-xl">❤️</button>
-      <span id="like-count-${video.id}" class="ml-2">0</span>명이 좋아요
+      ${isOwner ? `
+        <input type="text" id="edit-note-${video.id}" placeholder="메모 수정" class="p-2 w-full border rounded" />
+        <div class="flex gap-2 mt-2">
+          <button onclick="updateNote('${video.id}')" class="bg-yellow-500 text-white px-3 py-1 rounded">메모 저장</button>
+          <button onclick="deleteNote('${video.id}')" class="bg-gray-600 text-white px-3 py-1 rounded">메모 삭제</button>
+          <button onclick="deleteVideo('${video.id}')" class="bg-red-500 text-white px-3 py-1 rounded">영상 삭제</button>
+        </div>
+      ` : ""}
+
+      <div class="flex items-center mt-2">
+        <button onclick="toggleLike('${video.id}')" id="like-btn-${video.id}" class="text-red-500 text-xl">❤️</button>
+        <span id="like-count-${video.id}" class="ml-2">0</span>명이 좋아요
+      </div>
+
+      <div id="comments-${video.id}" class="mt-4 text-sm text-gray-700"></div>
+
+      <input type="text" placeholder="댓글 작성" id="comment-input-${video.id}" class="p-2 mt-2 w-full border rounded" />
+      <button onclick="postComment('${video.id}')" class="mt-2 bg-blue-500 text-white px-3 py-1 rounded">댓글 달기</button>
     </div>
-
-    <div id="comments-${video.id}" class="mt-4 text-sm text-gray-700"></div>
-
-    <input type="text" placeholder="댓글 작성" id="comment-input-${video.id}" class="p-2 mt-2 w-full border rounded" />
-    <button onclick="postComment('${video.id}')" class="mt-2 bg-blue-500 text-white px-3 py-1 rounded">댓글 달기</button>
   </div>
 `;
+
 
 
     videoFeed.appendChild(videoDiv);
