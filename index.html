@@ -36,7 +36,10 @@
     </div>
     <div class="relative flex items-center gap-4">
       <!-- 알림 버튼 -->
-      <button id="notificationBtn" onclick="toggleNotifications()">🔔</button>
+      <button id="notificationBtn" onclick="toggleNotifications()" class="relative">
+        🔔
+        <span id="notiCount" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-1.5 rounded-full hidden">0</span>
+      </button>
     
       <!-- 알림 창 -->
       <div id="notificationBox" class="hidden absolute right-16 top-10 bg-white shadow rounded w-64 p-3 max-h-80 overflow-auto z-50">

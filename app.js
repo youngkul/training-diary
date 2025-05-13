@@ -119,22 +119,65 @@ window.uploadVideo = async function () {
   );
   const { signedUrl, publicUrl } = await signedUrlResponse.json();
 
+  // 1. 먼저 썸네일 추출 (비디오 → 캔버스)
+  const videoURL = URL.createObjectURL(file);
+  const thumbnailBlob = await new Promise((resolve, reject) => {
+    const videoEl = document.createElement("video");
+    videoEl.src = videoURL;
+    videoEl.muted = true;
+    videoEl.playsInline = true;
+    videoEl.currentTime = 0;
+
+    videoEl.addEventListener("loadeddata", () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 640;
+      canvas.height = 360;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(blob => resolve(blob), "image/jpeg", 0.8);
+    });
+
+    videoEl.addEventListener("error", reject);
+  });
+
+  // 2. 썸네일 업로드
+  const thumbFileName = `thumb_${fileName.replace(/\.[^/.]+$/, ".jpg")}`;
+  const thumbUrlRes = await fetch(
+    `https://us-central1-training-video-b4935.cloudfunctions.net/getSignedUrl?fileName=${encodeURIComponent(thumbFileName)}`
+  );
+  const { signedUrl: thumbSignedUrl, publicUrl: thumbPublicUrl } = await thumbUrlRes.json();
+
+  const thumbUpload = await fetch(thumbSignedUrl, {
+    method: "PUT",
+    headers: { "Content-Type": "image/jpeg" },
+    body: thumbnailBlob,
+  });
+
+  if (!thumbUpload.ok) {
+    alert("썸네일 업로드 실패");
+    uploadBtn.disabled = false;
+    uploadBtn.textContent = "업로드";
+    return;
+  }
+
+  // 3. 영상 업로드
   const uploadRes = await fetch(signedUrl, {
     method: "PUT",
     headers: { "Content-Type": file.type },
-    body: file
+    body: file,
   });
 
   if (!uploadRes.ok) {
-    console.error("Wasabi 업로드 실패:", await uploadRes.text());
     alert("영상 업로드 실패");
     uploadBtn.disabled = false;
     uploadBtn.textContent = "업로드";
     return;
   }
 
+  // 4. Firestore 저장
   await addDoc(collection(db, "videos"), {
     url: publicUrl,
+    poster: thumbPublicUrl,
     note,
     uid,
     name,
@@ -142,16 +185,14 @@ window.uploadVideo = async function () {
   });
 
   alert("업로드 성공!");
-
-  // 업로드 폼 초기화
   document.getElementById("videoInput").value = "";
   document.getElementById("videoNote").value = "";
   uploadBtn.disabled = false;
   uploadBtn.textContent = "업로드";
-
-  // 새로고침 대신 영상만 다시 로드
   loadAllVideos();
 };
+
+
 window.loadNotifications = async function () {
   const session = await getSession();
   const uid = session?.user?.uid;
