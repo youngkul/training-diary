@@ -341,7 +341,8 @@ async function loadAllVideos() {
     videoDiv.id = `video-card-${video.id}`;
 
     videoDiv.innerHTML = `
-  <div class="bg-white shadow-lg rounded-xl overflow-hidden">
+  <div class="bg-gray-900 shadow-lg rounded-xl overflow-hidden text-white">
+
     <p class="text-sm text-gray-500 p-4">${video.name || "익명"}님이 ${timeAgo(video.created_at)}에 업로드했습니다</p>
 
     <div class="w-full">
@@ -380,8 +381,14 @@ async function loadAllVideos() {
 
       <div id="comments-${video.id}" class="mt-4 text-sm text-gray-700"></div>
 
-      <input type="text" placeholder="댓글 작성" id="comment-input-${video.id}" class="p-2 mt-2 w-full border rounded" />
-      <button onclick="postComment('${video.id}')" class="mt-2 bg-blue-500 text-white px-3 py-1 rounded">댓글 달기</button>
+      <input type="text" placeholder="댓글 작성" id="comment-input-${video.id}"
+  class="p-2 mt-2 w-full border border-gray-600 rounded bg-gray-800 text-white placeholder-gray-400" />
+
+<button onclick="postComment('${video.id}')"
+  class="mt-2 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition">
+  댓글 달기
+</button>
+
     </div>
   </div>
 `;
