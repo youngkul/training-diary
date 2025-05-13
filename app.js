@@ -379,7 +379,8 @@ async function loadAllVideos() {
         <span id="like-count-${video.id}" class="ml-2">0</span>명이 좋아요
       </div>
 
-      <div id="comments-${video.id}" class="mt-4 text-sm text-gray-700"></div>
+     <div id="comments-${video.id}" class="mt-4 text-sm text-gray-200"></div>
+
 
      <input
   type="text"
