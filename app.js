@@ -345,14 +345,15 @@ async function loadAllVideos() {
         <p class="text-sm text-gray-500">${video.name || "익명"}님이 ${timeAgo(video.created_at)}에 업로드했습니다</p>
         <video
           src="${video.url}"
-          poster="${video.poster || 'https://placehold.co/640x360?text=썸네일'}"
+          poster="${video.poster}"
           controls
           muted
           playsinline
           preload="metadata"
           loading="lazy"
-          class="w-full aspect-video rounded-xl shadow-lg border border-gray-200"
-        ></video>
+          class="w-full h-[70vh] object-cover rounded-xl shadow-lg border border-gray-200"
+        />
+
         <p><strong>메모:</strong> <span id="note-${video.id}">${video.note || "없음"}</span></p>
         <div class="flex items-center gap-2 mt-2">
           <button onclick="copyVideoLink('${video.id}')" class="text-blue-600 text-sm underline">🔗 공유하기</button>
