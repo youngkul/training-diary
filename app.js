@@ -385,8 +385,10 @@ async function loadAllVideos() {
   type="text"
   placeholder="댓글 작성"
   id="comment-input-${video.id}"
-  class="p-2 mt-2 w-full rounded border border-gray-600 bg-gray-900 text-white placeholder-gray-400 caret-white"
+  style="color: white; background-color: #1f2937; border: 1px solid #4b5563; caret-color: white;"
+  class="p-2 mt-2 w-full rounded placeholder-gray-400"
 />
+
 
   <button
     onclick="postComment('${video.id}')"
