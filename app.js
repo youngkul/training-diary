@@ -335,6 +335,14 @@ async function loadAllVideos() {
   const session = await getSession();
   const currentUid = session?.user?.uid;
 
+  let isAdmin = false;
+  if (currentUid) {
+    const userRef = doc(db, "users", currentUid);
+    const userSnap = await getDoc(userRef);
+    isAdmin = userSnap.exists() && userSnap.data().role === "admin";
+  }
+
+
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       const video = entry.target;
@@ -349,7 +357,7 @@ async function loadAllVideos() {
   for (const docSnap of snapshot.docs) {
     const video = { id: docSnap.id, ...docSnap.data() };
     const isOwner = video.uid === currentUid;
-    const isAdmin = session?.user?.user_metadata?.role === "admin";
+
 
     // ✅ 중복 방지를 위한 ID 체크
     if (document.getElementById(`video-card-${video.id}`)) continue;
