@@ -614,23 +614,30 @@ async function loadComments(videoId) {
   snapshot.forEach((docSnap) => {
     const comment = { id: docSnap.id, ...docSnap.data() };
   
+    // 🔹 wrapper: 한 줄에 좌우 배치
     const wrapper = document.createElement("div");
-    wrapper.className = "flex justify-between text-sm text-white"; // ✅ 삭제 버튼 오른쪽 끝
+    wrapper.className = "flex justify-between items-center text-sm text-white py-1";
   
+    // 🔹 왼쪽: 댓글 텍스트
     const text = document.createElement("span");
     text.textContent = `${comment.name || "익명"}: ${comment.content}`;
     wrapper.appendChild(text);
   
+    // 🔹 오른쪽: 삭제 버튼 (있는 경우만)
     if (comment.uid === currentUid || isAdmin) {
       const btn = document.createElement("button");
       btn.textContent = "삭제";
-      btn.className = "text-sm text-red-400 hover:underline"; // ✅ 링크형 버튼
+      btn.className = "text-sm text-red-400 hover:underline ml-2";
       btn.onclick = () => deleteComment(videoId, comment.id);
-      wrapper.appendChild(btn);
+  
+      const btnWrapper = document.createElement("div"); // 🔹 오른쪽 영역
+      btnWrapper.appendChild(btn);
+      wrapper.appendChild(btnWrapper);
     }
   
     container.appendChild(wrapper);
   });
+  
   
   
 }
