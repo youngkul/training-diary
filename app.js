@@ -614,10 +614,11 @@ async function loadComments(videoId) {
     if (comment.uid === currentUid || isAdmin) {
       const btn = document.createElement("button");
       btn.textContent = "삭제";
-      btn.className = "text-sm text-red-500 bg-gray-100 px-2 py-1 rounded border border-red-300 hover:bg-red-200 ml-2";
+      btn.className = "text-sm text-red-400 hover:underline ml-2";
       btn.onclick = () => deleteComment(videoId, comment.id);
       wrapper.appendChild(btn);
     }
+    
   
     container.appendChild(wrapper);
   });
