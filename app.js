@@ -590,7 +590,7 @@ async function loadComments(videoId) {
   const container = document.getElementById(`comments-${videoId}`);
   if (!container) return;
 
-  container.innerHTML = "<p class='font-semibold text-white'>댓글:</p>";
+  container.innerHTML = "";
 
   const q = query(
     collection(db, "comments"),
@@ -615,26 +615,22 @@ async function loadComments(videoId) {
     const comment = { id: docSnap.id, ...docSnap.data() };
   
     const wrapper = document.createElement("div");
-    wrapper.className = "flex items-center justify-between gap-2 py-2 px-3 bg-gray-800 text-white rounded";
+    wrapper.className = "text-sm text-white"; // ✅ 패딩, 배경 제거됨
   
     const text = document.createElement("span");
     text.textContent = `${comment.name || "익명"}: ${comment.content}`;
-    text.className = "flex-1 text-sm";
     wrapper.appendChild(text);
   
     if (comment.uid === currentUid || isAdmin) {
       const btn = document.createElement("button");
       btn.textContent = "삭제";
-      btn.className = "text-sm text-red-400 hover:underline ml-2";
+      btn.className = "text-sm text-red-400 hover:underline ml-2"; // ✅ 텍스트 링크형 버튼
       btn.onclick = () => deleteComment(videoId, comment.id);
       wrapper.appendChild(btn);
     }
-    
   
     container.appendChild(wrapper);
-  });
-  
-  
+  });  
   
 }
 
