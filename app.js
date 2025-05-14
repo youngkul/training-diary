@@ -374,16 +374,14 @@ async function loadAllVideos() {
 
     <div class="w-full">
       <video
-  src="${video.url}"
-  poster="${video.poster || 'https://placehold.co/640x360?text=썸네일'}"
-  controls
-  muted
-  playsinline
-  preload="metadata"
-  style="transform: none;"
-  class="w-full aspect-video"
-></video>
-
+        src="${video.url}"
+        poster="${video.poster || 'https://placehold.co/640x360?text=썸네일'}"
+        controls
+        muted
+        playsinline
+        preload="metadata"
+        class="w-full aspect-video object-cover"
+      ></video>
     </div>
 
     <div class="space-y-2 text-sm">
