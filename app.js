@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     localStorage.setItem("uid", session.user.uid);
     document.getElementById("authSection").classList.add("hidden");
     document.getElementById("mainSection").classList.remove("hidden");
-    document.getElementById("userInfo").innerText = `로그인됨: ${session.user.email}`;
+    // document.getElementById("userInfo").innerText = `로그인됨: ${session.user.email}`;
 
     // ✅ 관리자 전용 섹션 보이기
     if (session.user.user_metadata?.role === "admin") {
