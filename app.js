@@ -374,7 +374,12 @@ async function loadAllVideos() {
   </div>
 
   ${(isOwner || isAdmin) ? `
-    <input type="text" id="edit-note-${video.id}" placeholder="메모 수정" class="p-2 w-full border rounded bg-gray-800 text-white border-gray-600" />
+    <input
+      type="text"
+      id="edit-note-${video.id}"
+      placeholder="메모 수정"
+      class="p-2 w-full border rounded bg-gray-800 text-white border-gray-600" />
+
     <div class="flex gap-2 mt-2">
       <button onclick="updateNote('${video.id}')" class="bg-yellow-500 text-white px-3 py-1 rounded">메모 저장</button>
       <button onclick="deleteNote('${video.id}')" class="bg-gray-600 text-white px-3 py-1 rounded">메모 삭제</button>
@@ -579,41 +584,33 @@ async function loadComments(videoId) {
   const session = await getSession();
   const currentUid = session?.user?.uid;
 
-  // 🔥 Firestore에서 내 role 불러오기
   const userRef = doc(db, "users", currentUid);
   const userSnap = await getDoc(userRef);
   const isAdmin = userSnap.exists() && userSnap.data().role === "admin";
 
   snapshot.forEach((docSnap) => {
     const comment = { id: docSnap.id, ...docSnap.data() };
-  
-    const div = document.createElement("div");
-    div.className = "py-1 px-2 rounded bg-gray-800 text-gray-200";
-  
-    const textWrapper = document.createElement("div");
-    textWrapper.className = "flex justify-between items-center w-full";
-  
-    const text = document.createElement("p");
-    text.textContent = `${comment.name || "익명"}: ${comment.content}`;
-  
-    textWrapper.appendChild(text);
-  
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "flex justify-between items-center py-2 px-3 bg-gray-800 rounded text-white mb-1";
+
+    const content = document.createElement("span");
+    content.textContent = `${comment.name || "익명"}: ${comment.content}`;
+    wrapper.appendChild(content);
+
     if (comment.uid === currentUid || isAdmin) {
       const btn = document.createElement("button");
       btn.textContent = "삭제";
-      btn.className = "text-sm text-red-400 hover:underline";
+      btn.className = "ml-4 text-sm text-red-400 hover:underline";
       btn.onclick = () => deleteComment(videoId, comment.id);
-      textWrapper.appendChild(btn);
+      wrapper.appendChild(btn);
     }
-  
-    div.appendChild(textWrapper);
-    container.appendChild(div);
+
+    container.appendChild(wrapper);
   });
-  
 }
 
-
-
+  
 
 // ✅ 좋아요
 async function loadLikes(videoId) {
