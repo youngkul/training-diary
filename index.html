@@ -205,25 +205,43 @@
     let touchStartY = 0;
     let pulled = false;
   
+    function isAtTop() {
+      return (
+        document.documentElement.scrollTop <= 5 ||
+        document.body.scrollTop <= 5
+      );
+    }
+  
     document.addEventListener("touchstart", (e) => {
-      if (window.scrollY === 0) {
+      if (isAtTop()) {
         touchStartY = e.touches[0].clientY;
       }
     });
   
     document.addEventListener("touchmove", (e) => {
       const currentY = e.touches[0].clientY;
-      if (currentY - touchStartY > 80 && !pulled && window.scrollY === 0) {
+      if (currentY - touchStartY > 80 && !pulled && isAtTop()) {
         pulled = true;
-        console.log("🔄 화면을 아래로 당겼습니다. 새로고침!");
-        location.reload(); // 또는 loadAllVideos(); 가능
+        showLoadingToast(); // ✅ 로딩 메시지 보여주기
+        setTimeout(() => {
+          location.reload(); // 또는 loadAllVideos();
+        }, 800);
       }
     });
   
     document.addEventListener("touchend", () => {
       pulled = false;
     });
+  
+    function showLoadingToast() {
+      const div = document.createElement("div");
+      div.textContent = "🔄 새로고침 중...";
+      div.className = "fixed top-16 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg z-50 shadow";
+      document.body.appendChild(div);
+      setTimeout(() => div.remove(), 2000);
+    }
   </script>
+  
   
   
   <!-- Firebase 관련 모듈 -->
