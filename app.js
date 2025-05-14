@@ -341,7 +341,7 @@ async function loadAllVideos() {
     videoDiv.id = `video-card-${video.id}`;
 
     videoDiv.innerHTML = `
-   <div class="bg-gray-900 w-full rounded-none shadow-none text-white">
+  <div class="w-full md:max-w-2xl mx-auto bg-gray-900 rounded-2xl shadow-lg p-5 space-y-4 text-white">
 
     <p class="text-sm text-gray-500 p-4">${video.name || "익명"}님이 ${timeAgo(video.created_at)}에 업로드했습니다</p>
 
