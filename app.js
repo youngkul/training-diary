@@ -678,7 +678,7 @@ async function checkLoginStatus() {
     localStorage.setItem("uid", session.user.uid);
     authDiv.classList.add("hidden");
     mainDiv.classList.remove("hidden");
-    userInfo.innerText = `로그인됨: ${session.user.email}`;
+    // userInfo.innerText = `로그인됨: ${session.user.email}`;
     loadAllVideos();
   } else {
     localStorage.removeItem("uid");
