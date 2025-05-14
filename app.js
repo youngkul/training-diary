@@ -602,30 +602,28 @@ async function loadComments(videoId) {
 
   snapshot.forEach((docSnap) => {
     const comment = { id: docSnap.id, ...docSnap.data() };
-
+  
     const wrapper = document.createElement("div");
-    wrapper.className = "flex justify-between items-center py-2 px-3 bg-gray-800 rounded text-white mb-2";
-
-    const content = document.createElement("div");
-    content.textContent = `${comment.name || "익명"}: ${comment.content}`;
-
-    wrapper.appendChild(content);
-
-    // ✅ 삭제 버튼 조건
+    wrapper.className = "flex items-center justify-between gap-2 py-2 px-3 bg-gray-800 text-white rounded";
+  
+    const text = document.createElement("span");
+    text.textContent = `${comment.name || "익명"}: ${comment.content}`;
+    text.className = "flex-1 text-sm";
+    wrapper.appendChild(text);
+  
     if (comment.uid === currentUid || isAdmin) {
       const btn = document.createElement("button");
       btn.textContent = "삭제";
-      btn.className = "ml-4 text-sm text-red-400 hover:underline";
+      btn.className = "text-sm text-red-500 bg-gray-100 px-2 py-1 rounded border border-red-300 hover:bg-red-200 ml-2";
       btn.onclick = () => deleteComment(videoId, comment.id);
       wrapper.appendChild(btn);
-
-      console.log(`🗑️ 삭제 버튼 추가됨 → 댓글ID: ${comment.id}`);
-    } else {
-      console.log(`🙅 삭제 권한 없음 → 댓글ID: ${comment.id}`);
     }
-
+  
     container.appendChild(wrapper);
   });
+  
+  
+  
 }
 
 
