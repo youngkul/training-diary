@@ -34,7 +34,6 @@ window.handleSignup = async function () {
 };
 
 // ✅ 로그인
-// ✅ 로그인
 window.handleLogin = async function () {
   const email = document.getElementById("authEmail").value;
   const password = document.getElementById("authPassword").value;
@@ -52,6 +51,15 @@ window.handleLogin = async function () {
       return;
     }
 
+    // ✅ 사용자 추방 여부 확인
+    const userRef = doc(db, "users", cred.user.uid);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists() && userSnap.data().banned) {
+      alert("🚫 이용이 정지된 계정입니다.");
+      await signOut(auth);
+      return;
+    }
+
     alert("로그인 성공!");
     window.location.reload();
 
@@ -60,6 +68,7 @@ window.handleLogin = async function () {
     alert("로그인 실패: " + error.message);
   }
 };
+
 
 
 

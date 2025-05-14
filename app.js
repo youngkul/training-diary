@@ -338,6 +338,7 @@ async function loadAllVideos() {
   for (const docSnap of snapshot.docs) {
     const video = { id: docSnap.id, ...docSnap.data() };
     const isOwner = video.uid === currentUid;
+    const isAdmin = session?.user?.user_metadata?.role === "admin";
 
     // ✅ 중복 방지를 위한 ID 체크
     if (document.getElementById(`video-card-${video.id}`)) continue;
@@ -372,7 +373,7 @@ async function loadAllVideos() {
     <span id="copied-${video.id}" class="text-green-400 text-sm hidden">링크 복사됨!</span>
   </div>
 
-  ${isOwner ? `
+  ${(isOwner || isAdmin) ? `
     <input type="text" id="edit-note-${video.id}" placeholder="메모 수정" class="p-2 w-full border rounded bg-gray-800 text-white border-gray-600" />
     <div class="flex gap-2 mt-2">
       <button onclick="updateNote('${video.id}')" class="bg-yellow-500 text-white px-3 py-1 rounded">메모 저장</button>
@@ -577,6 +578,7 @@ async function loadComments(videoId) {
 
   const session = await getSession();
   const currentUid = session?.user?.uid;
+  const isAdmin = session?.user?.user_metadata?.role === "admin"; // ✅ 관리자 확인
 
   snapshot.forEach((docSnap) => {
     const comment = { id: docSnap.id, ...docSnap.data() };
@@ -588,7 +590,8 @@ async function loadComments(videoId) {
     text.textContent = `${comment.name || "익명"}: ${comment.content}`;
     div.appendChild(text);
 
-    if (comment.uid === currentUid) {
+    // ✅ 본인 또는 관리자만 삭제 가능
+    if (comment.uid === currentUid || isAdmin) {
       const btn = document.createElement("button");
       btn.textContent = "삭제";
       btn.className = "text-sm text-red-400 ml-2 hover:underline";
@@ -599,6 +602,7 @@ async function loadComments(videoId) {
     container.appendChild(div);
   });
 }
+
 
 
 // ✅ 좋아요
