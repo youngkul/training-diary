@@ -375,10 +375,13 @@ async function loadAllVideos() {
 
   ${(isOwner || isAdmin) ? `
     <input
-      type="text"
-      id="edit-note-${video.id}"
-      placeholder="메모 수정"
-      class="p-2 w-full border rounded bg-gray-800 text-white border-gray-600" />
+  type="text"
+  id="edit-note-${video.id}"
+  placeholder="메모 수정"
+  style="background-color: #1f2937; color: white; border: 1px solid #4b5563; caret-color: white;"
+  class="p-2 w-full rounded placeholder-gray-400"
+/>
+
 
     <div class="flex gap-2 mt-2">
       <button onclick="updateNote('${video.id}')" class="bg-yellow-500 text-white px-3 py-1 rounded">메모 저장</button>
