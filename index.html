@@ -206,7 +206,7 @@
     let isPulledEnough = false;
   
     function isAtTop() {
-      return window.scrollY === 0;
+      return window.scrollY <= 10; // 스크롤 위치가 상단 근처인지 체크
     }
   
     document.addEventListener("touchstart", (e) => {
@@ -222,12 +222,11 @@
       const currentY = e.touches[0].clientY;
       const pullDistance = currentY - touchStartY;
   
-      // ✅ 아래로 150px 이상 당겼을 때만 표시
-      if (pullDistance > 150 && !isPulledEnough) {
+      if (pullDistance > 100 && !isPulledEnough) {
         isPulledEnough = true;
         showLoadingToast();
         setTimeout(() => {
-          location.reload(); // 또는 loadAllVideos();
+          location.reload();
         }, 800);
       }
     });
@@ -241,6 +240,7 @@
       setTimeout(() => div.remove(), 2000);
     }
   </script>
+  
   
 
   
