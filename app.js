@@ -57,7 +57,19 @@ window.loadFriendRequests = async function () {
   snap.forEach(docSnap => {
     const data = docSnap.data();
     const div = document.createElement("div");
-    div.className = "flex justify-between items-center border p-3 rounded";
+    div.className = "text-sm text-white flex justify-between items-center";
+
+
+  
+    const text = document.createElement("span");
+    text.textContent = `${data.name || "익명"}: ${data.content}`;
+  
+    div.appendChild(text);
+    container.appendChild(div);
+  });
+  
+
+
 
     div.innerHTML = `
       <p class="text-gray-800">${data.from} 님이 친구 요청</p>
@@ -68,8 +80,7 @@ window.loadFriendRequests = async function () {
     `;
 
     listBox.appendChild(div);
-  });
-};
+  }
 
 // ✅ 로그인 상태 확인 후 친구 요청도 함께 로딩
 document.addEventListener("DOMContentLoaded", async () => {
