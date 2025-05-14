@@ -586,29 +586,30 @@ async function loadComments(videoId) {
 
   snapshot.forEach((docSnap) => {
     const comment = { id: docSnap.id, ...docSnap.data() };
-
+  
     const div = document.createElement("div");
-    div.className = "flex justify-between items-center py-1 px-2 rounded bg-gray-800 text-gray-200";
-
+    div.className = "py-1 px-2 rounded bg-gray-800 text-gray-200";
+  
+    const textWrapper = document.createElement("div");
+    textWrapper.className = "flex justify-between items-center w-full";
+  
     const text = document.createElement("p");
     text.textContent = `${comment.name || "익명"}: ${comment.content}`;
-    div.appendChild(text);
-
+  
+    textWrapper.appendChild(text);
+  
     if (comment.uid === currentUid || isAdmin) {
       const btn = document.createElement("button");
       btn.textContent = "삭제";
-      btn.className = "text-sm text-red-400 ml-2 hover:underline";
+      btn.className = "text-sm text-red-400 hover:underline";
       btn.onclick = () => deleteComment(videoId, comment.id);
-      div.appendChild(btn);
+      textWrapper.appendChild(btn);
     }
-
-    // ✅ 디버깅 로그
-    console.log("🛡️ 관리자 여부 isAdmin:", isAdmin);
-    console.log("🧾 현재 사용자 uid:", currentUid);
-    console.log("📄 댓글 작성자 uid:", comment.uid);
-
+  
+    div.appendChild(textWrapper);
     container.appendChild(div);
   });
+  
 }
 
 
