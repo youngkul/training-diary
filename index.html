@@ -206,7 +206,7 @@
     let isPulledEnough = false;
   
     function isAtTop() {
-      return window.scrollY <= 10;
+      return window.scrollY <= 10; // 스크롤 위치가 상단 근처인지 체크
     }
   
     document.addEventListener("touchstart", (e) => {
@@ -225,10 +225,8 @@
       if (pullDistance > 100 && !isPulledEnough) {
         isPulledEnough = true;
         showLoadingToast();
-  
-        // ✅ 깜빡임 없이 영상 목록만 다시 불러옴
         setTimeout(() => {
-          loadAllVideos();
+          location.reload();
         }, 800);
       }
     });
@@ -242,7 +240,6 @@
       setTimeout(() => div.remove(), 2000);
     }
   </script>
-  
   
   
 
