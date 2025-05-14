@@ -3,7 +3,7 @@ import { auth, db } from "./firebase-config.js";
 import { getSession } from "./auth-utils.js";
 import {
   collection, addDoc, getDocs, deleteDoc, doc, getDoc,
-  query, where, orderBy, updateDoc,serverTimestamp
+  query, where, orderBy, updateDoc,serverTimestamp, limit
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 // ✅ 요청 수락
 window.acceptFriendRequest = async function (requestId, fromUid, toUid) {
@@ -330,7 +330,11 @@ async function loadAllVideos() {
   if (!videoFeed) return;
   videoFeed.innerHTML = ""; // ✅ 기존 내용 제거
 
-  const q = query(collection(db, "videos"), orderBy("created_at", "desc"));
+  const q = query(
+    collection(db, "videos"),
+    orderBy("created_at", "desc"),
+    limit(10)
+  );
   const snapshot = await getDocs(q);
   const session = await getSession();
   const currentUid = session?.user?.uid;
