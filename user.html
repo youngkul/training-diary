@@ -30,7 +30,12 @@
   </header>
 
   <div class="pt-20"></div>
-
+  <div id="uploadSection" class="transition-toggle max-w-xl mx-auto mt-4 bg-gray-800 rounded-2xl shadow p-6 space-y-4">
+    <h2 class="text-xl font-semibold text-white">훈련 영상 업로드</h2>
+    <textarea id="videoNote" rows="3" placeholder="운동 설명 메모" class="w-full p-3 border border-gray-600 bg-gray-900 text-white rounded-lg resize-none placeholder-gray-400"></textarea>
+    <input type="file" id="videoInput" accept="video/*" class="w-full text-white bg-gray-900 border border-gray-600 rounded-lg p-2" />
+    <button onclick="uploadVideo()" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition">업로드</button>
+  </div>
   <!-- 🔻 본문 -->
   <h1 class="text-2xl font-bold text-center text-gray-800 mb-4">선수 개인 피드</h1>
   <div id="userName" class="text-center text-gray-600 mb-6"></div>
@@ -124,7 +129,9 @@
     }
 
     loadUserVideos();
+    
   </script>
+  
 
   <!-- 🔻 하단 네비게이션  -->
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center h-16 shadow z-50">
@@ -156,22 +163,35 @@
   </nav> 
 
   <script>
+    function goUpload() {
+      const section = document.getElementById("uploadSection");
+      if (!section) return;
+  
+      section.classList.toggle("hidden");
+  
+      if (!section.classList.contains("hidden")) {
+        window.scrollTo({ top: section.offsetTop - 50, behavior: "smooth" });
+      }
+    }
+  
     function goHome() {
       window.location.href = "/index.html";
     }
+  
     function goSearch() {
       alert("검색 기능은 준비 중입니다.");
     }
-    function goUpload() {
-      alert("업로드 기능은 준비 중입니다.");
-    }
+  
     function goAlert() {
       alert("알림 기능은 준비 중입니다.");
     }
+  
     function goFriends() {
       window.location.href = "/friends.html";
     }
   </script>
+  
+  
   
   
 </body>
