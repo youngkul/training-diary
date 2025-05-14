@@ -244,8 +244,19 @@
       setTimeout(() => div.remove(), 2000);
     }
   </script>
+  <script type="module">
+    import { db } from "./firebase-config.js";
+    import { getSession } from "./auth-utils.js";
+    import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
   
-  
+    getSession().then(async session => {
+      const uid = session.user.uid;
+      const snap = await getDoc(doc(db, "users", uid));
+      alert("내 role: " + snap.data().role);
+    });
+    
+  </script>
+
   
   
   <!-- Firebase 관련 모듈 -->
