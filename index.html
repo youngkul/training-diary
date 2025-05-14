@@ -201,6 +201,29 @@
       }
     });
   </script>
+  <script>
+    let touchStartY = 0;
+    let pulled = false;
+  
+    document.addEventListener("touchstart", (e) => {
+      if (window.scrollY === 0) {
+        touchStartY = e.touches[0].clientY;
+      }
+    });
+  
+    document.addEventListener("touchmove", (e) => {
+      const currentY = e.touches[0].clientY;
+      if (currentY - touchStartY > 80 && !pulled && window.scrollY === 0) {
+        pulled = true;
+        console.log("🔄 화면을 아래로 당겼습니다. 새로고침!");
+        location.reload(); // 또는 loadAllVideos(); 가능
+      }
+    });
+  
+    document.addEventListener("touchend", () => {
+      pulled = false;
+    });
+  </script>
   
   
   <!-- Firebase 관련 모듈 -->
