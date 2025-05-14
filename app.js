@@ -80,6 +80,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("mainSection").classList.remove("hidden");
     document.getElementById("userInfo").innerText = `로그인됨: ${session.user.email}`;
 
+    // ✅ 관리자 전용 섹션 보이기
+    if (session.user.user_metadata?.role === "admin") {
+      const adminSection = document.getElementById("adminSection");
+      if (adminSection) adminSection.classList.remove("hidden");
+    }
+
     loadAllVideos?.();
     loadFriendRequests?.();
     updateNotificationCount(); // ✅ 알림 숫자 표시
@@ -550,13 +556,48 @@ async function updateNotificationCount() {
 
 
 // ✅ 로그인 완료 후 실행
+const ADMIN_UID = "Fbp8rgVvZ0ZP6uVfbw0J8scejWu2";
+
 document.addEventListener("DOMContentLoaded", async () => {
   const session = await getSession();
+
+  const authDiv = document.getElementById("authSection");
+  const mainDiv = document.getElementById("mainSection");
+  const adminDiv = document.getElementById("adminSection");
+
   if (session) {
-    await updateNotificationCount(); // 알림 숫자 표시
-    loadFriendRequests();            // 친구 요청 목록 불러오기
+    localStorage.setItem("uid", session.user.uid);
+
+    if (authDiv) authDiv.classList.add("hidden");
+    if (mainDiv) mainDiv.classList.remove("hidden");
+
+    // ✅ 알림 숫자 표시
+    if (typeof updateNotificationCount === "function") {
+      await updateNotificationCount();
+    }
+
+    // ✅ 친구 요청 목록 불러오기
+    if (typeof loadFriendRequests === "function") {
+      loadFriendRequests();
+    }
+
+    // ✅ 관리자 전용 섹션 표시
+    if (session.user.uid === ADMIN_UID && adminDiv) {
+      adminDiv.classList.remove("hidden");
+    }
+
+    // ✅ 전체 영상 불러오기
+    if (typeof loadAllVideos === "function") {
+      loadAllVideos();
+    }
+
+  } else {
+    localStorage.removeItem("uid");
+    if (authDiv) authDiv.classList.remove("hidden");
+    if (mainDiv) mainDiv.classList.add("hidden");
   }
 });
+
 
 
 async function loadComments(videoId) {
