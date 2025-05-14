@@ -569,7 +569,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function loadComments(videoId) {
   const container = document.getElementById(`comments-${videoId}`);
-  if (!container) return console.warn(`❌ 댓글 컨테이너 없음: comments-${videoId}`);
+  if (!container) return;
 
   container.innerHTML = "<p class='font-semibold text-white'>댓글:</p>";
 
@@ -578,12 +578,7 @@ async function loadComments(videoId) {
 
   const session = await getSession();
   const currentUid = session?.user?.uid;
-
-  // ✅ Firestore에서 관리자 여부 확인
-  const userRef = doc(db, "users", currentUid);
-  const userSnap = await getDoc(userRef);
-  const userData = userSnap.exists() ? userSnap.data() : {};
-  const isAdmin = userData.role === "admin";
+  const isAdmin = session?.user?.user_metadata?.role === "admin"; // ✅ 추가!!
 
   snapshot.forEach((docSnap) => {
     const comment = { id: docSnap.id, ...docSnap.data() };
@@ -595,6 +590,7 @@ async function loadComments(videoId) {
     text.textContent = `${comment.name || "익명"}: ${comment.content}`;
     div.appendChild(text);
 
+    // ✅ 관리자도 삭제 가능
     if (comment.uid === currentUid || isAdmin) {
       const btn = document.createElement("button");
       btn.textContent = "삭제";
@@ -606,6 +602,7 @@ async function loadComments(videoId) {
     container.appendChild(div);
   });
 }
+
 
 
 
