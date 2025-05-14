@@ -581,37 +581,53 @@ async function loadComments(videoId) {
 
   container.innerHTML = "<p class='font-semibold text-white'>댓글:</p>";
 
-  const q = query(collection(db, "comments"), where("video_id", "==", videoId), orderBy("created_at"));
+  const q = query(
+    collection(db, "comments"),
+    where("video_id", "==", videoId),
+    orderBy("created_at")
+  );
   const snapshot = await getDocs(q);
 
   const session = await getSession();
   const currentUid = session?.user?.uid;
 
-  const userRef = doc(db, "users", currentUid);
-  const userSnap = await getDoc(userRef);
-  const isAdmin = userSnap.exists() && userSnap.data().role === "admin";
+  // ✅ Firestore에서 role 확인
+  let isAdmin = false;
+  if (currentUid) {
+    const userRef = doc(db, "users", currentUid);
+    const userSnap = await getDoc(userRef);
+    isAdmin = userSnap.exists() && userSnap.data().role === "admin";
+    console.log("✅ 관리자 여부 isAdmin:", isAdmin);
+  }
 
   snapshot.forEach((docSnap) => {
     const comment = { id: docSnap.id, ...docSnap.data() };
 
     const wrapper = document.createElement("div");
-    wrapper.className = "flex justify-between items-center py-2 px-3 bg-gray-800 rounded text-white mb-1";
+    wrapper.className = "flex justify-between items-center py-2 px-3 bg-gray-800 rounded text-white mb-2";
 
-    const content = document.createElement("span");
+    const content = document.createElement("div");
     content.textContent = `${comment.name || "익명"}: ${comment.content}`;
+
     wrapper.appendChild(content);
 
+    // ✅ 삭제 버튼 조건
     if (comment.uid === currentUid || isAdmin) {
       const btn = document.createElement("button");
       btn.textContent = "삭제";
       btn.className = "ml-4 text-sm text-red-400 hover:underline";
       btn.onclick = () => deleteComment(videoId, comment.id);
       wrapper.appendChild(btn);
+
+      console.log(`🗑️ 삭제 버튼 추가됨 → 댓글ID: ${comment.id}`);
+    } else {
+      console.log(`🙅 삭제 권한 없음 → 댓글ID: ${comment.id}`);
     }
 
     container.appendChild(wrapper);
   });
 }
+
 
   
 
