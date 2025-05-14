@@ -220,9 +220,12 @@
   
     document.addEventListener("touchmove", (e) => {
       const currentY = e.touches[0].clientY;
-      if (currentY - touchStartY > 80 && !pulled && isAtTop()) {
+      const pullDistance = currentY - touchStartY;
+  
+      // ✅ 150px 이상 당겨야 새로고침
+      if (pullDistance > 150 && !pulled && isAtTop()) {
         pulled = true;
-        showLoadingToast(); // ✅ 로딩 메시지 보여주기
+        showLoadingToast();
         setTimeout(() => {
           location.reload(); // 또는 loadAllVideos();
         }, 800);
@@ -241,6 +244,7 @@
       setTimeout(() => div.remove(), 2000);
     }
   </script>
+  
   
   
   
