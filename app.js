@@ -739,7 +739,7 @@ window.toggleLike = async function (videoId) {
   const userRef = doc(db, "users", uid);
   const userSnap = await getDoc(userRef);
   const name = userSnap.exists() ? userSnap.data().name : "익명";
-
+  const team = userSnap.exists() ? userSnap.data().team || "미지정" : "미지정"; 
   const videoRef = doc(db, "videos", videoId);
   const videoSnap = await getDoc(videoRef);
   const videoOwnerUid = videoSnap.exists() ? videoSnap.data().uid : null;
