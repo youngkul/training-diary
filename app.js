@@ -234,7 +234,9 @@ window.uploadVideo = async function () {
     uploadBtn.textContent = "업로드";
     return;
   }
-
+  console.log("✅ 업로드 사용자 이름:", name);
+  console.log("✅ 업로드 사용자 팀:", team);
+  
   // ✅ Firestore 저장
   // ✅ Firestore 저장
 await addDoc(collection(db, "videos"), {
