@@ -171,7 +171,7 @@ window.uploadVideo = async function () {
     }, 5000);
 
     videoEl.addEventListener("loadedmetadata", () => {
-      if (videoEl.duration > 0.1) videoEl.currentTime = 0.1;
+      if (videoEl.duration > 0.1) videoEl.currentTime = 1;
     });
 
     videoEl.addEventListener("canplay", () => {
