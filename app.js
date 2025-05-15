@@ -358,7 +358,7 @@ async function loadAllVideos() {
   let q = query(
     collection(db, "videos"),
     orderBy("created_at", "desc"),
-    limit(10)
+    limit(7)
   );
 
   if (lastVisibleVideo) {
@@ -367,19 +367,19 @@ async function loadAllVideos() {
       collection(db, "videos"),
       orderBy("created_at", "desc"),
       startAfter(lastVisibleVideo),
-      limit(10)
+      limit(7)
     );
   }
 
   const snapshot = await getDocs(q);
 
-if (snapshot.empty) {
-  console.log("✅ 더 이상 영상 없음");
-  if (loadingSpinner) loadingSpinner.classList.add("hidden");
-  isLoading = false;
-  return;
-}
-
+  if (snapshot.empty) {
+    if (loadingSpinner) loadingSpinner.classList.add("hidden");
+    const endMsg = document.getElementById("endOfFeed");
+    if (endMsg) endMsg.classList.remove("hidden");
+    isLoading = false;
+    return;
+  }
 
   lastVisibleVideo = snapshot.docs[snapshot.docs.length - 1];
 
