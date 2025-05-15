@@ -98,6 +98,13 @@
       <button onclick="viewAllUsers()" class="bg-blue-500 px-4 py-2 rounded hover:bg-blue-600">전체 사용자 목록</button>
       <button onclick="viewAllVideos()" class="bg-red-500 px-4 py-2 rounded hover:bg-red-600">전체 영상 목록</button>
     </section>
+    <!-- 업로드 섹션 -->
+    <div id="uploadSection" class="transition-toggle max-w-xl mx-auto mt-4 bg-gray-800 rounded-2xl shadow p-6 space-y-4">
+      <h2 class="text-xl font-semibold text-white">훈련 영상 업로드</h2>
+      <textarea id="videoNote" rows="3" placeholder="운동 설명 메모" class="w-full p-3 border border-gray-600 bg-gray-900 text-white rounded-lg resize-none placeholder-gray-400"></textarea>
+      <input type="file" id="videoInput" accept="video/*" class="w-full text-white bg-gray-900 border border-gray-600 rounded-lg p-2" />
+      <button onclick="uploadVideo()" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition">업로드</button>
+    </div>
   <!-- ✅ 영상 목록 및 스피너 추가 -->
   <div id="videoFeed" class="space-y-6 max-w-2xl mx-auto"></div>
   <div id="endOfFeed" class="hidden text-center text-sm text-gray-500 py-4">
@@ -106,13 +113,7 @@
   <div id="loadingSpinner" class="hidden text-center py-4 text-gray-400">
     <span class="animate-spin inline-block w-6 h-6 border-4 border-gray-300 border-t-transparent rounded-full"></span>
     <p class="mt-2 text-sm">로딩 중...</p>
-    <!-- 업로드 섹션 -->
-    <div id="uploadSection" class="transition-toggle max-w-xl mx-auto mt-4 bg-gray-800 rounded-2xl shadow p-6 space-y-4">
-      <h2 class="text-xl font-semibold text-white">훈련 영상 업로드</h2>
-      <textarea id="videoNote" rows="3" placeholder="운동 설명 메모" class="w-full p-3 border border-gray-600 bg-gray-900 text-white rounded-lg resize-none placeholder-gray-400"></textarea>
-      <input type="file" id="videoInput" accept="video/*" class="w-full text-white bg-gray-900 border border-gray-600 rounded-lg p-2" />
-      <button onclick="uploadVideo()" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition">업로드</button>
-    </div>
+    
     
 
     <!-- 영상 목록 피드 -->
@@ -170,21 +171,19 @@
     function goUpload() {
       const section = document.getElementById("uploadSection");
       if (!section) return;
-
-      section.classList.toggle("open");
-
-      if (section.classList.contains("open")) {
+    
+      const isHidden = section.classList.contains("hidden");
+    
+      if (isHidden) {
+        section.classList.remove("hidden");
+        section.classList.add("open");
         window.scrollTo({ top: section.offsetTop - 50, behavior: "smooth" });
-      }
-    }
-    function goMyPage() {
-      const uid = localStorage.getItem("uid");
-      if (uid) {
-        window.location.href = `/user.html?uid=${uid}`;
       } else {
-        alert("로그인이 필요합니다.");
+        section.classList.add("hidden");
+        section.classList.remove("open");
       }
     }
+    
 
     function goFriends() {
       window.location.href = "/friends.html";
