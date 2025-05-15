@@ -125,6 +125,7 @@ window.uploadVideo = async function () {
 
   const file = document.getElementById("videoInput").files[0];
   const note = document.getElementById("videoNote").value;
+
   if (!file) {
     alert("영상을 선택하세요.");
     uploadBtn.disabled = false;
@@ -134,11 +135,18 @@ window.uploadVideo = async function () {
 
   const session = await getSession();
   const uid = session?.user?.uid;
-  if (!uid) return alert("로그인이 필요합니다.");
+  if (!uid) {
+    alert("로그인이 필요합니다.");
+    uploadBtn.disabled = false;
+    uploadBtn.textContent = "업로드";
+    return;
+  }
 
+  // ✅ 사용자 정보에서 이름과 팀 가져오기
   const userRef = doc(db, "users", uid);
   const userSnap = await getDoc(userRef);
   const name = userSnap.exists() ? userSnap.data().name : "익명";
+  const team = userSnap.exists() ? userSnap.data().team || "미지정" : "미지정";
 
   const fileName = `${Date.now()}_${file.name}`;
   const signedUrlResponse = await fetch(
@@ -146,12 +154,7 @@ window.uploadVideo = async function () {
   );
   const { signedUrl, publicUrl } = await signedUrlResponse.json();
 
-  // 1. 먼저 썸네일 추출 (비디오 → 캔버스)
-  const videoURL = URL.createObjectURL(file);
-  const videoEl = document.createElement("video");
-  videoEl.src = videoURL; 
-  // ✅ 썸네일 Blob 추출 (모바일 호환)
-  // ✅ 썸네일 Blob 생성 (모바일 대응 최종판)
+  // ✅ 썸네일 생성
   const thumbnailBlob = await new Promise((resolve) => {
     const videoEl = document.createElement("video");
     videoEl.src = URL.createObjectURL(file);
@@ -160,17 +163,17 @@ window.uploadVideo = async function () {
     videoEl.preload = "auto";
     videoEl.style.display = "none";
     document.body.appendChild(videoEl);
-  
+
     let timeout = setTimeout(() => {
       console.warn("⏰ 썸네일 생성 타임아웃 → 건너뜀");
       document.body.removeChild(videoEl);
       resolve(null);
-    }, 5000); // 5초 이내 동작 안 하면 포기
-  
+    }, 5000);
+
     videoEl.addEventListener("loadedmetadata", () => {
       if (videoEl.duration > 0.1) videoEl.currentTime = 0.1;
     });
-  
+
     videoEl.addEventListener("canplay", () => {
       try {
         const canvas = document.createElement("canvas");
@@ -181,56 +184,44 @@ window.uploadVideo = async function () {
         canvas.toBlob((blob) => {
           clearTimeout(timeout);
           document.body.removeChild(videoEl);
-          if (blob) {
-            console.log("✅ 썸네일 생성 성공");
-            resolve(blob);
-          } else {
-            console.warn("❌ 썸네일 실패 → 업로드는 계속");
-            resolve(null);
-          }
+          resolve(blob);
         }, "image/jpeg", 0.8);
       } catch (e) {
         clearTimeout(timeout);
         document.body.removeChild(videoEl);
-        console.warn("❌ drawImage 실패 → 업로드는 계속", e);
+        console.warn("❌ drawImage 실패", e);
         resolve(null);
       }
     });
-  
+
     videoEl.addEventListener("error", () => {
       clearTimeout(timeout);
       document.body.removeChild(videoEl);
-      console.warn("❌ video 로드 실패 → 업로드는 계속");
       resolve(null);
     });
   });
-  
 
-  
-  
+  let thumbPublicUrl = "";
+  if (thumbnailBlob) {
+    const thumbFileName = `${Date.now()}_thumbnail.jpg`;
+    const thumbSignedUrlRes = await fetch(
+      `https://us-central1-training-video-b4935.cloudfunctions.net/getSignedUrl?fileName=${encodeURIComponent(thumbFileName)}`
+    );
+    const { signedUrl: thumbSignedUrl, publicUrl: thumbUrl } = await thumbSignedUrlRes.json();
 
+    const uploadThumbRes = await fetch(thumbSignedUrl, {
+      method: "PUT",
+      headers: { "Content-Type": "image/jpeg" },
+      body: thumbnailBlob,
+    });
 
-  // 2. 썸네일 업로드
-  const thumbFileName = `thumb_${fileName.replace(/\.[^/.]+$/, ".jpg")}`;
-  const thumbUrlRes = await fetch(
-    `https://us-central1-training-video-b4935.cloudfunctions.net/getSignedUrl?fileName=${encodeURIComponent(thumbFileName)}`
-  );
-  const { signedUrl: thumbSignedUrl, publicUrl: thumbPublicUrl } = await thumbUrlRes.json();
-
-  const thumbUpload = await fetch(thumbSignedUrl, {
-    method: "PUT",
-    headers: { "Content-Type": "image/jpeg" },
-    body: thumbnailBlob,
-  });
-
-  if (!thumbUpload.ok) {
-    alert("썸네일 업로드 실패");
-    uploadBtn.disabled = false;
-    uploadBtn.textContent = "업로드";
-    return;
+    if (uploadThumbRes.ok) {
+      thumbPublicUrl = thumbUrl;
+      console.log("✅ 썸네일 생성 성공");
+    }
   }
 
-  // 3. 영상 업로드
+  // ✅ 영상 업로드
   const uploadRes = await fetch(signedUrl, {
     method: "PUT",
     headers: { "Content-Type": file.type },
@@ -244,24 +235,39 @@ window.uploadVideo = async function () {
     return;
   }
 
-  // 4. Firestore 저장
-  await addDoc(collection(db, "videos"), {
-    url: publicUrl,
-    poster: thumbPublicUrl,
-    note,
-    uid,
-    name,
-    team,
-    created_at: new Date().toISOString()
-  });
+  // ✅ Firestore 저장
+  // ✅ Firestore 저장
+await addDoc(collection(db, "videos"), {
+  url: publicUrl,
+  poster: thumbPublicUrl,
+  note,
+  uid,
+  name,
+  team,
+  created_at: new Date().toISOString()
+});
 
-  alert("업로드 성공!");
-  document.getElementById("videoInput").value = "";
-  document.getElementById("videoNote").value = "";
-  uploadBtn.disabled = false;
-  uploadBtn.textContent = "업로드";
-  loadAllVideos();
-};
+// ✅ 성공 처리
+alert("업로드 성공!");
+document.getElementById("videoInput").value = "";
+document.getElementById("videoNote").value = "";
+uploadBtn.disabled = false;
+uploadBtn.textContent = "업로드";
+
+// ✅ 업로드 창 닫기
+const uploadSection = document.getElementById("uploadSection");
+if (uploadSection) {
+  uploadSection.classList.add("hidden");
+  uploadSection.classList.remove("open");
+}
+
+// ✅ 피드 초기화 후 다시 불러오기
+lastVisibleVideo = null;
+document.getElementById("videoFeed").innerHTML = "";
+loadAllVideos();
+}; 
+  
+
 
 
 window.loadNotifications = async function () {
@@ -329,10 +335,19 @@ window.deleteVideo = async function (videoId) {
     await deleteDoc(doc(db, "likes", likeDoc.id));
   });
 
+  // 영상 문서 삭제
   await deleteDoc(videoRef);
+
   alert("삭제 완료");
-  loadAllVideos();
+
+  // ✅ 화면에서 영상 카드 바로 제거
+  const deletedCard = document.getElementById(`video-card-${videoId}`);
+  if (deletedCard) deletedCard.remove();
+
+  // ✅ 필요 시 전체 피드를 다시 로드 (선택사항)
+  // loadAllVideos(); // 느리거나 깜빡임이 거슬릴 경우 주석 처리해도 됨
 };
+
 
 
 // ✅ 영상 목록 로딩
@@ -546,8 +561,6 @@ window.deleteNote = async function (videoId) {
 
 // ✅ 댓글
 window.postComment = async function (videoId) {
-  console.log("🔥 공유 시도한 videoId:", videoId);
-
   const input = document.getElementById(`comment-input-${videoId}`);
   const content = input.value.trim();
   if (!content) return;
@@ -556,14 +569,16 @@ window.postComment = async function (videoId) {
   const uid = session?.user?.uid;
   if (!uid) return alert("로그인이 필요합니다.");
 
+  // 🔥 여기가 중요!
   const userRef = doc(db, "users", uid);
   const userSnap = await getDoc(userRef);
   const name = userSnap.exists() ? userSnap.data().name : "익명";
-  const team = userSnap.exists() ? userSnap.data().team || "미지정" : "미지정";
+
+  // ✅ 이제 name 변수를 포함해 저장 가능
   await addDoc(collection(db, "comments"), {
     video_id: videoId,
     uid,
-    name,
+    name, // 🔥 선언된 name이므로 사선도 사라짐
     content,
     created_at: new Date().toISOString()
   });
