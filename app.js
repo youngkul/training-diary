@@ -3,7 +3,7 @@ import { auth, db } from "./firebase-config.js";
 import { getSession } from "./auth-utils.js";
 import {
   collection, addDoc, getDocs, deleteDoc, doc, getDoc,
-  query, where, orderBy, updateDoc,serverTimestamp, limit
+  query, where, orderBy, updateDoc,serverTimestamp, limit, startAfter 
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 let lastVisibleVideo = null; // 마지막으로 불러온 영상 문서
@@ -110,6 +110,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("mainSection").classList.add("hidden");
   }
   window.addEventListener("scroll", () => {
+    console.log("🔽 스크롤 이벤트 감지됨"); 
     if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 300) {
       loadAllVideos();
     }
@@ -357,24 +358,28 @@ async function loadAllVideos() {
   let q = query(
     collection(db, "videos"),
     orderBy("created_at", "desc"),
-    limit(7)
+    limit(10)
   );
 
   if (lastVisibleVideo) {
+    console.log("📌 마지막 문서 정보:", lastVisibleVideo.data());
     q = query(
       collection(db, "videos"),
       orderBy("created_at", "desc"),
       startAfter(lastVisibleVideo),
-      limit(7)
+      limit(10)
     );
   }
 
   const snapshot = await getDocs(q);
-  if (snapshot.empty) {
-    if (loadingSpinner) loadingSpinner.classList.add("hidden");
-    isLoading = false;
-    return;
-  }
+
+if (snapshot.empty) {
+  console.log("✅ 더 이상 영상 없음");
+  if (loadingSpinner) loadingSpinner.classList.add("hidden");
+  isLoading = false;
+  return;
+}
+
 
   lastVisibleVideo = snapshot.docs[snapshot.docs.length - 1];
 
