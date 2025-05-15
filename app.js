@@ -363,9 +363,9 @@ async function loadAllVideos() {
   
       // ✅ team 필드가 없을 경우 자동으로 "미지정"으로 저장
       if (!userData.team) {
-        await updateDoc(userRef, { team: "미지정" });
-        currentTeam = "미지정";
-        console.log("✅ team 필드가 없어 기본값 '미지정'으로 설정됨");
+        await updateDoc(userRef, { team: "인천시장애인체육회" }); // 또는 "미지정"
+        currentTeam = "인천시장애인체육회";
+        console.log("✅ team 필드 자동 설정됨");
       }
     }
   }
@@ -374,6 +374,7 @@ async function loadAllVideos() {
   // 🔍 관리자면 팀 필터 없이 전체 영상 조회
   let q;
   if (isAdmin) {
+    console.log("🛠 관리자 계정 - 전체 영상 불러오기");
     q = query(
       collection(db, "videos"),
       orderBy("created_at", "desc"),
@@ -381,6 +382,7 @@ async function loadAllVideos() {
       limit(7)
     );
   } else {
+    console.log("👤 일반 사용자 - 팀별 영상 불러오기:", currentTeam);
     // 일반 사용자는 본인 소속팀 기준으로 필터링
     q = query(
       collection(db, "videos"),
