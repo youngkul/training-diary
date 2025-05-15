@@ -29,31 +29,18 @@
     </div>
   </header>
 
-  <div class="relative overflow-visible">
-    <div class="pt-20"></div>
-  
-    <div id="uploadSection" class="transition-toggle hidden z-50 max-w-xl mx-auto mt-4 bg-gray-800 rounded-2xl shadow p-6 space-y-4">
-      <h2 class="text-xl font-semibold text-white">훈련 영상 업로드</h2>
-      <textarea id="videoNote" rows="3" placeholder="운동 설명 메모"
-        class="w-full p-3 border border-gray-600 bg-gray-900 text-white rounded-lg resize-none placeholder-gray-400"></textarea>
-      <input type="file" id="videoInput" accept="video/*"
-        class="w-full text-white bg-gray-900 border border-gray-600 rounded-lg p-2" />
-      <button onclick="uploadVideo()"
-        class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition">업로드</button>
-    </div>
-  </div>
-  
-  <!-- 🔻 본문 -->
-  <h1 class="text-2xl font-bold text-center text-gray-800 mb-4">선수 개인 피드</h1>
-  <div id="userName" class="text-center text-gray-600 mb-6"></div>
-  <div id="videoFeed" class="space-y-6 max-w-xl mx-auto"></div>
+  <div class="pt-20"></div>
+  <h1 class="text-2xl font-bold text-center text-gray-100 mb-4">선수 개인 피드</h1>
+  <div id="userName" class="text-center text-gray-400 mb-6"></div>
+  <div id="videoFeed" class="space-y-6 max-w-xl mx-auto px-4"></div>
 
-  <!-- 🔻 로그아웃 드롭다운 및 인터섹션 -->
+  <!-- 🔻 로그아웃 및 메뉴 -->
   <script>
     document.getElementById("menuToggle").addEventListener("click", () => {
       const menu = document.getElementById("dropdownMenu");
       menu.classList.toggle("hidden");
     });
+
     document.addEventListener("click", (e) => {
       const menu = document.getElementById("dropdownMenu");
       const toggle = document.getElementById("menuToggle");
@@ -76,15 +63,19 @@
     };
   </script>
 
-  <!-- 🔻 Firebase 로딩 -->
+  <!-- 🔻 Firebase 영상 불러오기 -->
   <script type="module">
     import { db } from './firebase-config.js';
     import { collection, getDocs, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-    const uid = new URLSearchParams(window.location.search).get("uid");
+    // ✅ uid: 쿼리 파라미터 → 없으면 localStorage에서 가져오기
+    let uid = new URLSearchParams(window.location.search).get("uid");
     if (!uid) {
-      alert("잘못된 접근입니다.");
-      location.href = "/";
+      uid = localStorage.getItem("uid");
+      if (!uid) {
+        alert("잘못된 접근입니다.");
+        location.href = "/";
+      }
     }
 
     const videoFeed = document.getElementById("videoFeed");
@@ -120,7 +111,7 @@
         if (!name) name = data.name;
 
         const el = document.createElement("div");
-        el.className = "bg-white rounded-xl shadow p-4 space-y-2";
+        el.className = "bg-white rounded-xl shadow p-4 space-y-2 text-black";
         el.innerHTML = `
           <p class="text-sm text-gray-500">${data.created_at?.split("T")[0] || ""} 업로드</p>
           <video src="${data.url}" controls muted playsinline class="w-full rounded-xl border border-gray-300"></video>
@@ -136,12 +127,10 @@
     }
 
     loadUserVideos();
-    
   </script>
-  
 
-  <!-- 🔻 하단 네비게이션  -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center h-16 shadow z-50">
+  <!-- 🔻 하단 네비게이션 -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center h-16 shadow z-50">
     <button onclick="goHome()">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path d="M3 12l2-2m0 0l7-7 7 7M13 5v6h6m-6 0H5m6 0v6" />
@@ -167,41 +156,26 @@
         <path d="M18 9a3 3 0 11-6 0 3 3 0 016 0zM6 9a3 3 0 100 6 3 3 0 000-6zm6 6a6 6 0 016 6H6a6 6 0 016-6z" />
       </svg>
     </button>
-  </nav> 
+  </nav>
 
+  <!-- 🔻 공통 페이지 이동 함수 -->
   <script>
-    function goUpload() {
-      const section = document.getElementById("uploadSection");
-      if (!section) return;
-  
-      section.classList.toggle("hidden");
-  
-      if (!section.classList.contains("hidden")) {
-        window.scrollTo({ top: section.offsetTop - 50, behavior: "smooth" });
-      }
-    }
-  
     function goHome() {
       window.location.href = "/index.html";
     }
-  
     function goSearch() {
       alert("검색 기능은 준비 중입니다.");
     }
-  
-    function goAlert() {
-      alert("알림 기능은 준비 중입니다.");
+    function goUpload() {
+      alert("업로드 기능은 메인 화면에서 가능합니다.");
     }
-  
     function goFriends() {
       window.location.href = "/friends.html";
     }
+    function goMyPage() {
+      window.location.href = "/user.html";
+    }
   </script>
-  
-  
-  
-  
+
 </body>
 </html>
-
-
