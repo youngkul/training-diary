@@ -232,12 +232,12 @@
       if (pullDistance > 100 && !isPulledEnough) {
         isPulledEnough = true;
         showLoadingToast();
-  
-        // ✅ 깜빡임 없이 영상 목록만 다시 불러옴
+      
+        // ✅ 진짜 새로고침
         setTimeout(() => {
-          loadAllVideos();
+          window.location.reload();  // ⬅ 페이지 전체 새로고침
         }, 800);
-      }
+      }      
     });
   
     function showLoadingToast() {
