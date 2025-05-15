@@ -13,17 +13,21 @@ window.handleSignup = async function () {
   const email = document.getElementById("authEmail").value;
   const password = document.getElementById("authPassword").value;
   const name = document.getElementById("authName").value;
+  const team = document.getElementById("authTeam").value; // ✅ 소속팀 가져오기
 
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
-    await setDoc(doc(db, "users", cred.user.uid), { email, name });
-
-    // ✅ 이메일 인증 메일 전송
-    await sendEmailVerification(cred.user);
-
-    alert("회원가입 성공! 이메일을 확인해주세요.");
     
-    // ✅ 인증 전이므로 로그아웃 처리
+    // ✅ Firestore에 소속팀 포함하여 저장
+    await setDoc(doc(db, "users", cred.user.uid), {
+      email,
+      name,
+      team // ✅ 소속팀 저장
+    });
+
+    await sendEmailVerification(cred.user);
+    alert("회원가입 성공! 이메일을 확인해주세요.");
+
     await signOut(auth);
     window.location.reload();
 
@@ -32,6 +36,7 @@ window.handleSignup = async function () {
     alert("회원가입 실패: " + error.message);
   }
 };
+
 
 // ✅ 로그인
 window.handleLogin = async function () {

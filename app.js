@@ -251,6 +251,7 @@ window.uploadVideo = async function () {
     note,
     uid,
     name,
+    team,
     created_at: new Date().toISOString()
   });
 
@@ -349,30 +350,48 @@ async function loadAllVideos() {
   const currentUid = session?.user?.uid;
 
   let isAdmin = false;
+  let currentTeam = null;
+
   if (currentUid) {
     const userRef = doc(db, "users", currentUid);
     const userSnap = await getDoc(userRef);
-    isAdmin = userSnap.exists() && userSnap.data().role === "admin";
+  
+    if (userSnap.exists()) {
+      const userData = userSnap.data();
+      isAdmin = userData.role === "admin";
+      currentTeam = userData.team || null;
+  
+      // ✅ team 필드가 없을 경우 자동으로 "미지정"으로 저장
+      if (!userData.team) {
+        await updateDoc(userRef, { team: "미지정" });
+        currentTeam = "미지정";
+        console.log("✅ team 필드가 없어 기본값 '미지정'으로 설정됨");
+      }
+    }
   }
+  
 
-  let q = query(
-    collection(db, "videos"),
-    orderBy("created_at", "desc"),
-    limit(7)
-  );
-
-  if (lastVisibleVideo) {
-    console.log("📌 마지막 문서 정보:", lastVisibleVideo.data());
+  // 🔍 관리자면 팀 필터 없이 전체 영상 조회
+  let q;
+  if (isAdmin) {
     q = query(
       collection(db, "videos"),
       orderBy("created_at", "desc"),
-      startAfter(lastVisibleVideo),
+      ...(lastVisibleVideo ? [startAfter(lastVisibleVideo)] : []),
+      limit(7)
+    );
+  } else {
+    // 일반 사용자는 본인 소속팀 기준으로 필터링
+    q = query(
+      collection(db, "videos"),
+      where("team", "==", currentTeam),
+      orderBy("created_at", "desc"),
+      ...(lastVisibleVideo ? [startAfter(lastVisibleVideo)] : []),
       limit(7)
     );
   }
 
   const snapshot = await getDocs(q);
-
   if (snapshot.empty) {
     if (loadingSpinner) loadingSpinner.classList.add("hidden");
     const endMsg = document.getElementById("endOfFeed");
@@ -381,7 +400,7 @@ async function loadAllVideos() {
     return;
   }
 
-  lastVisibleVideo = snapshot.docs[snapshot.docs.length - 1];
+  lastVisibleVideo = snapshot.docs[snapshot.docs.length - 1]; // 마지막 문서 저장
 
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -422,21 +441,14 @@ async function loadAllVideos() {
 
         <div class="space-y-2 text-sm">
           <p><strong>메모:</strong> <span id="note-${video.id}">${video.note || "없음"}</span></p>
-
           <div class="flex items-center gap-2">
             <button onclick="copyVideoLink('${video.id}')" class="text-blue-400 underline">🔗 공유하기</button>
             <span id="copied-${video.id}" class="text-green-400 hidden">링크 복사됨!</span>
           </div>
-
           ${(isOwner || isAdmin) ? `
-            <input
-              type="text"
-              id="edit-note-${video.id}"
-              placeholder="메모 수정"
+            <input type="text" id="edit-note-${video.id}" placeholder="메모 수정"
               class="p-2 w-full rounded placeholder-gray-400"
-              style="background-color: #1f2937; color: white; border: 1px solid #4b5563; caret-color: white;"
-            />
-
+              style="background-color: #1f2937; color: white; border: 1px solid #4b5563; caret-color: white;" />
             <div class="flex gap-2 mt-2 flex-wrap">
               <button onclick="updateNote('${video.id}')" class="bg-yellow-500 text-white px-3 py-1 rounded">메모 저장</button>
               <button onclick="deleteNote('${video.id}')" class="bg-gray-600 text-white px-3 py-1 rounded">메모 삭제</button>
@@ -450,19 +462,10 @@ async function loadAllVideos() {
           </div>
 
           <div id="comments-${video.id}" class="mt-4 space-y-2"></div>
-
-          <input
-            type="text"
-            placeholder="댓글 작성"
-            id="comment-input-${video.id}"
+          <input type="text" placeholder="댓글 작성" id="comment-input-${video.id}"
             class="p-2 mt-2 w-full rounded placeholder-gray-400"
-            style="background-color: #1f2937; color: white; border: 1px solid #4b5563; caret-color: white;"
-          />
-
-          <button
-            onclick="postComment('${video.id}')"
-            class="mt-2 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"
-          >
+            style="background-color: #1f2937; color: white; border: 1px solid #4b5563; caret-color: white;" />
+          <button onclick="postComment('${video.id}')" class="mt-2 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition">
             댓글 달기
           </button>
         </div>
@@ -479,6 +482,7 @@ async function loadAllVideos() {
   if (loadingSpinner) loadingSpinner.classList.add("hidden");
   isLoading = false;
 }
+
 
 
 
@@ -553,7 +557,7 @@ window.postComment = async function (videoId) {
   const userRef = doc(db, "users", uid);
   const userSnap = await getDoc(userRef);
   const name = userSnap.exists() ? userSnap.data().name : "익명";
-
+  const team = userSnap.exists() ? userSnap.data().team || "미지정" : "미지정";
   await addDoc(collection(db, "comments"), {
     video_id: videoId,
     uid,
