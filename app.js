@@ -400,7 +400,7 @@ async function loadAllVideos() {
       collection(db, "videos"),
       orderBy("created_at", "desc"),
       ...(lastVisibleVideo ? [startAfter(lastVisibleVideo)] : []),
-      limit(7)
+      limit(3)
     );
   } else {
     console.log("👤 일반 사용자 - 팀별 영상 불러오기:", currentTeam);
@@ -410,7 +410,7 @@ async function loadAllVideos() {
       where("team", "==", currentTeam),
       orderBy("created_at", "desc"),
       ...(lastVisibleVideo ? [startAfter(lastVisibleVideo)] : []),
-      limit(7)
+      limit(3)
     );
   }
 
