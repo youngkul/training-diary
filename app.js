@@ -326,8 +326,14 @@ window.deleteVideo = async function (videoId) {
   const videoSnap = await getDoc(videoRef);
   if (!videoSnap.exists()) return alert("영상이 존재하지 않습니다.");
 
-  if (videoSnap.data().uid !== uid) {
-    return alert("본인의 영상만 삭제할 수 있습니다.");
+  // 🔑 관리자 권한 체크
+  const userRef = doc(db, "users", uid);
+  const userSnap = await getDoc(userRef);
+  const isAdmin = userSnap.exists() && userSnap.data().role === "admin";
+
+  // 본인도 아니고 관리자도 아니면 삭제 불가
+  if (videoSnap.data().uid !== uid && !isAdmin) {
+    return alert("본인 또는 관리자만 삭제할 수 있습니다.");
   }
 
   // 좋아요도 함께 삭제
@@ -345,10 +351,8 @@ window.deleteVideo = async function (videoId) {
   // ✅ 화면에서 영상 카드 바로 제거
   const deletedCard = document.getElementById(`video-card-${videoId}`);
   if (deletedCard) deletedCard.remove();
-
-  // ✅ 필요 시 전체 피드를 다시 로드 (선택사항)
-  // loadAllVideos(); // 느리거나 깜빡임이 거슬릴 경우 주석 처리해도 됨
 };
+
 
 
 
