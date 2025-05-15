@@ -811,7 +811,10 @@ async function checkLoginStatus() {
 // ✅ 시작 시 실행
 document.addEventListener("DOMContentLoaded", checkLoginStatus);
     
-  
+window.toggleUploadSection = function () {
+  const section = document.getElementById("uploadSection");
+  section.classList.toggle("hidden");
+};
 
 
    
