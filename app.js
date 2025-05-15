@@ -177,8 +177,9 @@ window.uploadVideo = async function () {
     videoEl.addEventListener("canplay", () => {
       try {
         const canvas = document.createElement("canvas");
-        canvas.width = 640;
-        canvas.height = 360;
+        canvas.width = 320;
+        canvas.height = 180;
+
         const ctx = canvas.getContext("2d");
         ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
         canvas.toBlob((blob) => {
