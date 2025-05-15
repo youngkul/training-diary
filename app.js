@@ -497,10 +497,14 @@ async function loadAllVideos() {
 
     videoFeed.appendChild(videoDiv);
     const videoTag = videoDiv.querySelector("video");
-    if (videoTag) observer.observe(videoTag);
-    await loadComments(video.id);
-    await loadLikes(video.id);
-  }
+    if (!/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
+      if (videoTag) {
+        observer.observe(videoTag);
+      }
+    }
+    setTimeout(() => loadComments(video.id), 100);
+    setTimeout(() => loadLikes(video.id), 200);
+  } // 👈 이거 닫혀 있어야 함!
 
   if (loadingSpinner) loadingSpinner.classList.add("hidden");
   isLoading = false;
