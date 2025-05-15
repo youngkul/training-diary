@@ -382,12 +382,12 @@ async function loadAllVideos() {
       isAdmin = userData.role === "admin";
       currentTeam = userData.team || null;
   
-      // ✅ team 필드가 없을 경우 자동으로 "미지정"으로 저장
-      if (!userData.team) {
-        await updateDoc(userRef, { team: "인천시장애인체육회" }); // 또는 "미지정"
+      if (!userData.team || userData.team === "미지정") {
+        await updateDoc(userRef, { team: "인천시장애인체육회" });
         currentTeam = "인천시장애인체육회";
-        console.log("✅ team 필드 자동 설정됨");
+        console.log("✅ team 필드가 없거나 '미지정'이라 자동 설정됨");
       }
+      
     }
   }
   

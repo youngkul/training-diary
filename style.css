@@ -137,3 +137,17 @@ body {
     max-height: 500px; /* 적절히 조정 */
   }
   
+/* 팀 영상 피드용 스타일 */
+.video-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.video-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  padding: 1rem;
+}
