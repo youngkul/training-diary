@@ -5,6 +5,10 @@ import {
   collection, addDoc, getDocs, deleteDoc, doc, getDoc,
   query, where, orderBy, updateDoc,serverTimestamp, limit
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+let lastVisibleVideo = null; // 마지막으로 불러온 영상 문서
+let isLoading = false;       // 중복 로딩 방지
+
 // ✅ 요청 수락
 window.acceptFriendRequest = async function (requestId, fromUid, toUid) {
   // 사용자 이름 불러오기
@@ -105,6 +109,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("authSection").classList.remove("hidden");
     document.getElementById("mainSection").classList.add("hidden");
   }
+  window.addEventListener("scroll", () => {
+    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 300) {
+      loadAllVideos();
+    }
+  });
 });
 
 // ✅ 영상 업로드
@@ -326,16 +335,15 @@ window.deleteVideo = async function (videoId) {
 
 // ✅ 영상 목록 로딩
 async function loadAllVideos() {
+  if (isLoading) return;
+  isLoading = true;
+
+  const loadingSpinner = document.getElementById("loadingSpinner");
+  if (loadingSpinner) loadingSpinner.classList.remove("hidden");
+
   const videoFeed = document.getElementById("videoFeed");
   if (!videoFeed) return;
-  videoFeed.innerHTML = ""; // ✅ 기존 내용 제거
 
-  const q = query(
-    collection(db, "videos"),
-    orderBy("created_at", "desc"),
-    limit(10)
-  );
-  const snapshot = await getDocs(q);
   const session = await getSession();
   const currentUid = session?.user?.uid;
 
@@ -346,6 +354,29 @@ async function loadAllVideos() {
     isAdmin = userSnap.exists() && userSnap.data().role === "admin";
   }
 
+  let q = query(
+    collection(db, "videos"),
+    orderBy("created_at", "desc"),
+    limit(7)
+  );
+
+  if (lastVisibleVideo) {
+    q = query(
+      collection(db, "videos"),
+      orderBy("created_at", "desc"),
+      startAfter(lastVisibleVideo),
+      limit(7)
+    );
+  }
+
+  const snapshot = await getDocs(q);
+  if (snapshot.empty) {
+    if (loadingSpinner) loadingSpinner.classList.add("hidden");
+    isLoading = false;
+    return;
+  }
+
+  lastVisibleVideo = snapshot.docs[snapshot.docs.length - 1];
 
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -362,8 +393,6 @@ async function loadAllVideos() {
     const video = { id: docSnap.id, ...docSnap.data() };
     const isOwner = video.uid === currentUid;
 
-
-    // ✅ 중복 방지를 위한 ID 체크
     if (document.getElementById(`video-card-${video.id}`)) continue;
 
     const videoDiv = document.createElement("div");
@@ -371,74 +400,69 @@ async function loadAllVideos() {
     videoDiv.id = `video-card-${video.id}`;
 
     videoDiv.innerHTML = `
-  <div class="w-full max-w-full sm:max-w-2xl mx-auto">
+      <div class="w-full max-w-full sm:max-w-2xl mx-auto">
+        <p class="text-sm text-gray-400">${video.name || "익명"}님이 ${timeAgo(video.created_at)}에 업로드했습니다</p>
 
-
-    <p class="text-sm text-gray-400">${video.name || "익명"}님이 ${timeAgo(video.created_at)}에 업로드했습니다</p>
-
-    <div class="w-full">
-      <video
-        src="${video.url}"
-        poster="${video.poster || 'https://placehold.co/640x360?text=썸네일'}"
-        controls
-        muted
-        playsinline
-        preload="metadata"
-        class="w-full aspect-video object-cover"
-      ></video>
-    </div>
-
-    <div class="space-y-2 text-sm">
-      <p><strong>메모:</strong> <span id="note-${video.id}">${video.note || "없음"}</span></p>
-
-      <div class="flex items-center gap-2">
-        <button onclick="copyVideoLink('${video.id}')" class="text-blue-400 underline">🔗 공유하기</button>
-        <span id="copied-${video.id}" class="text-green-400 hidden">링크 복사됨!</span>
-      </div>
-
-      ${(isOwner || isAdmin) ? `
-        <input
-          type="text"
-          id="edit-note-${video.id}"
-          placeholder="메모 수정"
-          class="p-2 w-full rounded placeholder-gray-400"
-          style="background-color: #1f2937; color: white; border: 1px solid #4b5563; caret-color: white;"
-        />
-
-        <div class="flex gap-2 mt-2 flex-wrap">
-          <button onclick="updateNote('${video.id}')" class="bg-yellow-500 text-white px-3 py-1 rounded">메모 저장</button>
-          <button onclick="deleteNote('${video.id}')" class="bg-gray-600 text-white px-3 py-1 rounded">메모 삭제</button>
-          <button onclick="deleteVideo('${video.id}')" class="bg-red-500 text-white px-3 py-1 rounded">영상 삭제</button>
+        <div class="w-full">
+          <video
+            src="${video.url}"
+            poster="${video.poster || 'https://placehold.co/640x360?text=썸네일'}"
+            controls
+            muted
+            playsinline
+            preload="metadata"
+            class="w-full aspect-video object-cover"
+          ></video>
         </div>
-      ` : ""}
 
-      <div class="flex items-center mt-2">
-        <button onclick="toggleLike('${video.id}')" id="like-btn-${video.id}" class="text-red-500 text-xl">❤️</button>
-        <span id="like-count-${video.id}" class="ml-2">0</span>명이 좋아요
+        <div class="space-y-2 text-sm">
+          <p><strong>메모:</strong> <span id="note-${video.id}">${video.note || "없음"}</span></p>
+
+          <div class="flex items-center gap-2">
+            <button onclick="copyVideoLink('${video.id}')" class="text-blue-400 underline">🔗 공유하기</button>
+            <span id="copied-${video.id}" class="text-green-400 hidden">링크 복사됨!</span>
+          </div>
+
+          ${(isOwner || isAdmin) ? `
+            <input
+              type="text"
+              id="edit-note-${video.id}"
+              placeholder="메모 수정"
+              class="p-2 w-full rounded placeholder-gray-400"
+              style="background-color: #1f2937; color: white; border: 1px solid #4b5563; caret-color: white;"
+            />
+
+            <div class="flex gap-2 mt-2 flex-wrap">
+              <button onclick="updateNote('${video.id}')" class="bg-yellow-500 text-white px-3 py-1 rounded">메모 저장</button>
+              <button onclick="deleteNote('${video.id}')" class="bg-gray-600 text-white px-3 py-1 rounded">메모 삭제</button>
+              <button onclick="deleteVideo('${video.id}')" class="bg-red-500 text-white px-3 py-1 rounded">영상 삭제</button>
+            </div>
+          ` : ""}
+
+          <div class="flex items-center mt-2">
+            <button onclick="toggleLike('${video.id}')" id="like-btn-${video.id}" class="text-red-500 text-xl">❤️</button>
+            <span id="like-count-${video.id}" class="ml-2">0</span>명이 좋아요
+          </div>
+
+          <div id="comments-${video.id}" class="mt-4 space-y-2"></div>
+
+          <input
+            type="text"
+            placeholder="댓글 작성"
+            id="comment-input-${video.id}"
+            class="p-2 mt-2 w-full rounded placeholder-gray-400"
+            style="background-color: #1f2937; color: white; border: 1px solid #4b5563; caret-color: white;"
+          />
+
+          <button
+            onclick="postComment('${video.id}')"
+            class="mt-2 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"
+          >
+            댓글 달기
+          </button>
+        </div>
       </div>
-
-      <div id="comments-${video.id}" class="mt-4 space-y-2"></div>
-
-      <input
-        type="text"
-        placeholder="댓글 작성"
-        id="comment-input-${video.id}"
-        class="p-2 mt-2 w-full rounded placeholder-gray-400"
-        style="background-color: #1f2937; color: white; border: 1px solid #4b5563; caret-color: white;"
-      />
-
-      <button
-        onclick="postComment('${video.id}')"
-        class="mt-2 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"
-      >
-        댓글 달기
-      </button>
-    </div>
-  </div>
-`;
-
-
-
+    `;
 
     videoFeed.appendChild(videoDiv);
     const videoTag = videoDiv.querySelector("video");
@@ -446,7 +470,11 @@ async function loadAllVideos() {
     await loadComments(video.id);
     await loadLikes(video.id);
   }
+
+  if (loadingSpinner) loadingSpinner.classList.add("hidden");
+  isLoading = false;
 }
+
 
 
 window.copyVideoLink = async function(videoId) {
