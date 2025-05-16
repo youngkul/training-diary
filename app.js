@@ -171,7 +171,7 @@ window.uploadVideo = async function () {
     }, 5000);
 
     videoEl.addEventListener("loadedmetadata", () => {
-      if (videoEl.duration > 0.1) videoEl.currentTime = 1;
+      if (videoEl.duration > 0.1) videoEl.currentTime = 0.1;
     });
 
     videoEl.addEventListener("canplay", () => {
@@ -496,13 +496,13 @@ async function loadAllVideos() {
       </div>
     `;
 
-    videoFeed.appendChild(videoDiv);
+   videoFeed.appendChild(videoDiv);
     const videoTag = videoDiv.querySelector("video");
-    if (!/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
+    // if (!/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
       if (videoTag) {
         observer.observe(videoTag);
       }
-    }
+    // }
     setTimeout(() => loadComments(video.id), 100);
     setTimeout(() => loadLikes(video.id), 200);
   } // 👈 이거 닫혀 있어야 함!
