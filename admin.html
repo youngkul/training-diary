@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>관리자 페이지</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-4 min-h-screen">
+  <h1 class="text-2xl font-bold mb-4">🔐 관리자 페이지</h1>
+  <div id="userList" class="space-y-4"></div>
+
+  <script type="module">
+    import { db } from "./firebase-config.js";
+    import { getSession } from "./auth-utils.js";
+    import {
+      collection, getDocs, doc, getDoc, updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const session = await getSession();
+      const currentUid = session?.user?.uid;
+      if (!currentUid) return location.href = "/index.html";
+
+      const userRef = doc(db, "users", currentUid);
+      const userSnap = await getDoc(userRef);
+      const role = userSnap.exists() ? userSnap.data().role : "user";
+
+      if (role !== "admin") {
+        alert("관리자만 접근할 수 있습니다.");
+        location.href = "/index.html";
+        return;
+      }
+
+      // ✅ 관리자 화면 로딩 시작
+      loadAllUsers();
+    });
+
+    async function loadAllUsers() {
+      const snap = await getDocs(collection(db, "users"));
+      const userList = document.getElementById("userList");
+      userList.innerHTML = "";
+
+      snap.forEach(docSnap => {
+        const data = docSnap.data();
+        const uid = docSnap.id;
+
+        const div = document.createElement("div");
+        div.className = "bg-gray-800 p-4 rounded shadow flex justify-between items-center";
+
+        div.innerHTML = `
+          <div>
+            <p><strong>${data.name}</strong> (${data.email})</p>
+            <p class="text-sm text-gray-400">팀: ${data.team || "없음"} | 권한: ${data.role || "user"}</p>
+            <p class="text-sm ${data.banned ? 'text-red-400' : 'text-green-400'}">
+              상태: ${data.banned ? "🚫 차단됨" : "✅ 사용 가능"}
+            </p>
+          </div>
+          <button class="px-3 py-1 rounded text-white ${data.banned ? 'bg-green-500' : 'bg-red-500'} hover:opacity-80"
+            onclick="toggleBan('${uid}', ${data.banned ? 'false' : 'true'})">
+            ${data.banned ? '차단 해제' : '차단'}
+          </button>
+        `;
+        userList.appendChild(div);
+      });
+    }
+
+    window.toggleBan = async function (uid, banValue) {
+      await updateDoc(doc(db, "users", uid), { banned: banValue });
+      loadAllUsers();
+    };
+  </script>
+
+  <script type="module" src="./firebase-config.js"></script>
+  <script type="module" src="./auth-utils.js"></script>
+
+</body>
+</html>
