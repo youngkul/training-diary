@@ -8,7 +8,21 @@
 <body class="bg-gray-900 text-white p-4 min-h-screen">
   <h1 class="text-2xl font-bold mb-4">🔐 관리자 페이지</h1>
   <div id="userList" class="space-y-4"></div>
-
+  <nav class="fixed bottom-0 left-0 right-0 bg-gray-900 text-white border-t border-gray-800 flex justify-around items-center h-16 z-50 shadow-lg">
+    <button onclick="goHome()" class="flex flex-col items-center hover:text-blue-400">
+      <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path d="M3 12l2-2m0 0l7-7 7 7M13 5v6h6m-6 0H5m6 0v6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="text-xs">피드</span>
+    </button>
+  
+    <button onclick="goFriends()" class="flex flex-col items-center hover:text-blue-400">
+      <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path d="M18 9a3 3 0 11-6 0 3 3 0 016 0zM6 9a3 3 0 100 6 3 3 0 000-6zm6 6a6 6 0 016 6H6a6 6 0 016-6z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="text-xs">친구</span>
+    </button>
+  </nav>
   <script type="module">
     import { db } from "./firebase-config.js";
     import { getSession } from "./auth-utils.js";
@@ -72,6 +86,14 @@
 
   <script type="module" src="./firebase-config.js"></script>
   <script type="module" src="./auth-utils.js"></script>
-
+  <script>
+    function goHome() {
+      window.location.href = "/index.html";
+    }
+    function goFriends() {
+      window.location.href = "/friends.html";
+    }
+  </script>
+  
 </body>
 </html>
