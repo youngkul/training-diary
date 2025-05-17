@@ -7,6 +7,33 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-900 text-white p-4 min-h-screen">
+
+  <!-- ✅ 상단 헤더 + 알림 UI 추가 -->
+  <header class="flex justify-between items-center p-4 bg-white shadow fixed top-0 left-0 right-0 z-50">
+    <div class="text-xl font-bold flex items-center space-x-1">
+      <span class="text-red-500">P</span>
+      <span class="text-orange-500">a</span>
+      <span class="text-yellow-500">r</span>
+      <span class="text-green-500">a</span>
+      <span class="text-blue-600 text-2xl">S</span>
+      <span class="text-indigo-500">g</span>
+      <span class="text-purple-500">r</span>
+      <span class="text-pink-500">a</span>
+      <span class="text-gray-700">m</span>
+    </div>
+    <div class="relative flex items-center gap-4">
+      <button id="notificationBtn" onclick="toggleNotifications()" class="relative">
+        🔔
+        <span id="notiCount" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-1.5 rounded-full hidden">0</span>
+      </button>
+      <div id="notificationBox" class="hidden absolute right-16 top-10 bg-white shadow rounded w-64 p-3 max-h-80 overflow-auto z-50">
+        <p class="text-sm text-gray-700 font-semibold mb-2">알림</p>
+        <div id="notificationList" class="space-y-2"></div>
+      </div>
+    </div>
+  </header>
+  <div class="pt-20"></div> <!-- 헤더 높이만큼 패딩 -->
+
   <h1 class="text-2xl font-bold mb-4">🔍 친구 검색</h1>
 
   <input type="text" id="searchInput" placeholder="이름 검색"
@@ -14,36 +41,32 @@
 
   <div id="searchResults" class="space-y-4"></div>
 
-<!-- 고급스럽고 통일감 있는 하단 네비게이션 바 -->
-<nav class="fixed bottom-0 left-0 right-0 bg-gray-900 text-white border-t border-gray-800 flex justify-around items-center h-16 z-50 shadow-lg">
+  <!-- ✅ 하단 네비게이션 -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-gray-900 text-white border-t border-gray-800 flex justify-around items-center h-16 z-50 shadow-lg">
     <button onclick="goHome()" class="flex flex-col items-center hover:text-blue-400">
       <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path d="M3 12l2-2m0 0l7-7 7 7M13 5v6h6m-6 0H5m6 0v6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       <span class="text-xs">피드</span>
     </button>
-  
     <button onclick="goSearch()" class="flex flex-col items-center text-blue-400">
       <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path d="M21 21l-4.35-4.35m1.54-5.4a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       <span class="text-xs">검색</span>
     </button>
-  
     <button onclick="goUpload()" class="flex flex-col items-center hover:text-blue-400">
       <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path d="M12 4v16m8-8H4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       <span class="text-xs">업로드</span>
     </button>
-  
     <button onclick="goMyPage()" class="flex flex-col items-center hover:text-blue-400">
       <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path d="M5.121 17.804A7.5 7.5 0 0112 3a7.5 7.5 0 016.879 14.804M15 21H9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       <span class="text-xs">내정보</span>
     </button>
-  
     <button onclick="goFriends()" class="flex flex-col items-center hover:text-blue-400">
       <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path d="M18 9a3 3 0 11-6 0 3 3 0 016 0zM6 9a3 3 0 100 6 3 3 0 000-6zm6 6a6 6 0 016 6H6a6 6 0 016-6z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -51,7 +74,7 @@
       <span class="text-xs">친구</span>
     </button>
   </nav>
-  
+
   <script>
     function goHome() { location.href = "index.html"; }
     function goSearch() { location.href = "search.html"; }
@@ -59,7 +82,8 @@
     function goMyPage() { location.href = "user.html"; }
     function goFriends() { location.href = "friends.html"; }
   </script>
-  
+
+  <!-- 모듈 스크립트 -->
   <script type="module" src="./firebase-config.js"></script>
   <script type="module" src="./search.js"></script>
 </body>
