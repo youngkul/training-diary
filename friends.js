@@ -14,7 +14,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // ✅ 친구 요청 전송
-// ✅ 친구 요청 전송
 window.sendFriendRequest = async function () {
   const input = document.getElementById("friendUidInput");
   const nameInput = input.value.trim();

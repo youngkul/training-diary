@@ -61,34 +61,44 @@
     <ul id="friendList" class="divide-y divide-gray-200 text-gray-700 text-sm"></ul>
   </div>
 
-  <!-- 하단 네비게이션 -->
-  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around items-center h-16 shadow z-50">
-    <button onclick="goHome()">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path d="M3 12l2-2m0 0l7-7 7 7M13 5v6h6m-6 0H5m6 0v6" />
-      </svg>
-    </button>
-    <button onclick="goSearch()">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path d="M21 21l-4.35-4.35m1.54-5.4a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" />
-      </svg>
-    </button>
-    <button onclick="goUpload()">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path d="M12 4v16m8-8H4" />
-      </svg>
-    </button>
-    <button onclick="goMyPage()">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path d="M5.121 17.804A7.5 7.5 0 0112 3a7.5 7.5 0 016.879 14.804M15 21H9" />
-      </svg>
-    </button>
-    <button onclick="goFriends()">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path d="M18 9a3 3 0 11-6 0 3 3 0 016 0zM6 9a3 3 0 100 6 3 3 0 000-6zm6 6a6 6 0 016 6H6a6 6 0 016-6z" />
-      </svg>
-    </button>
-  </nav> 
+  <!-- 고급스럽고 통일감 있는 하단 네비게이션 바 -->
+<nav class="fixed bottom-0 left-0 right-0 bg-gray-900 text-white border-t border-gray-800 flex justify-around items-center h-16 z-50 shadow-lg">
+  <button onclick="goHome()" class="flex flex-col items-center hover:text-blue-400">
+    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path d="M3 12l2-2m0 0l7-7 7 7M13 5v6h6m-6 0H5m6 0v6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="text-xs">피드</span>
+  </button>
+
+  <button onclick="goSearch()" class="flex flex-col items-center text-blue-400">
+    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path d="M21 21l-4.35-4.35m1.54-5.4a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="text-xs">검색</span>
+  </button>
+
+  <button onclick="goUpload()" class="flex flex-col items-center hover:text-blue-400">
+    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path d="M12 4v16m8-8H4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="text-xs">업로드</span>
+  </button>
+
+  <button onclick="goMyPage()" class="flex flex-col items-center hover:text-blue-400">
+    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path d="M5.121 17.804A7.5 7.5 0 0112 3a7.5 7.5 0 016.879 14.804M15 21H9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="text-xs">내정보</span>
+  </button>
+
+  <button onclick="goFriends()" class="flex flex-col items-center hover:text-blue-400">
+    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path d="M18 9a3 3 0 11-6 0 3 3 0 016 0zM6 9a3 3 0 100 6 3 3 0 000-6zm6 6a6 6 0 016 6H6a6 6 0 016-6z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="text-xs">친구</span>
+  </button>
+</nav>
+
 
   <!-- 햄버거 메뉴 토글 스크립트 -->
   <script>
