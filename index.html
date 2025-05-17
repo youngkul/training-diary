@@ -62,10 +62,10 @@
 
   <!-- 🔐 로그인 -->
   <form onsubmit="handleLogin(); return false;" class="space-y-4">
-    <input type="email" id="authEmail" placeholder="이메일"
+    <input type="email" id="authEmail" placeholder="이메일" autocomplete="email" 
       class="w-full p-3 rounded-lg border border-gray-300 bg-white text-black placeholder-gray-500" />
 
-    <input type="password" id="authPassword" placeholder="비밀번호"
+    <input type="password" id="authPassword" placeholder="비밀번호" autocomplete="current-password" 
       class="w-full p-3 rounded-lg border border-gray-300 bg-white text-black placeholder-gray-500" />
 
     <button type="submit"
