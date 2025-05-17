@@ -673,49 +673,68 @@ async function loadComments(videoId) {
     orderBy("created_at")
   );
   const snapshot = await getDocs(q);
+  const comments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
   const session = await getSession();
   const currentUid = session?.user?.uid;
 
-  // ✅ Firestore에서 role 확인
   let isAdmin = false;
   if (currentUid) {
     const userRef = doc(db, "users", currentUid);
     const userSnap = await getDoc(userRef);
     isAdmin = userSnap.exists() && userSnap.data().role === "admin";
-    console.log("✅ 관리자 여부 isAdmin:", isAdmin);
   }
 
-  snapshot.forEach((docSnap) => {
-    const comment = { id: docSnap.id, ...docSnap.data() };
-  
-    // 🔹 wrapper: 한 줄에 좌우 배치
+  const visibleCount = 1;
+  const commentElements = [];
+
+  comments.forEach((comment, index) => {
     const wrapper = document.createElement("div");
     wrapper.className = "flex justify-between items-center text-sm text-white py-1";
-  
-    // 🔹 왼쪽: 댓글 텍스트
+
     const text = document.createElement("span");
     text.textContent = `${comment.name || "익명"}: ${comment.content}`;
     wrapper.appendChild(text);
-  
-    // 🔹 오른쪽: 삭제 버튼 (있는 경우만)
+
     if (comment.uid === currentUid || isAdmin) {
       const btn = document.createElement("button");
       btn.textContent = "삭제";
       btn.className = "text-sm text-red-400 hover:underline ml-2";
       btn.onclick = () => deleteComment(videoId, comment.id);
-  
-      const btnWrapper = document.createElement("div"); // 🔹 오른쪽 영역
-      btnWrapper.appendChild(btn);
-      wrapper.appendChild(btnWrapper);
+      wrapper.appendChild(btn);
     }
-  
+
+    if (index >= visibleCount) {
+      wrapper.classList.add("hidden");
+    }
+
+    commentElements.push(wrapper);
     container.appendChild(wrapper);
   });
-  
-  
-  
+
+  if (comments.length > visibleCount) {
+    const toggleBtn = document.createElement("button");
+    toggleBtn.className = "text-blue-400 text-sm underline mt-1";
+    toggleBtn.textContent = `댓글 ${comments.length}개 보기`;
+    let expanded = false;
+
+    toggleBtn.onclick = () => {
+      expanded = !expanded;
+      commentElements.forEach((el, i) => {
+        if (i >= visibleCount) {
+          el.classList.toggle("hidden", !expanded);
+        }
+      });
+      toggleBtn.textContent = expanded
+        ? "댓글 숨기기"
+        : `댓글 ${comments.length}개 보기`;
+    };
+
+    container.appendChild(toggleBtn);
+  }
 }
+
+
 
 
   
