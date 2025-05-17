@@ -10,19 +10,28 @@ import {
 
 // ✅ 회원가입
 window.handleSignup = async function () {
-  const email = document.getElementById("authEmail").value;
-  const password = document.getElementById("authPassword").value;
-  const name = document.getElementById("authName").value;
-  const team = document.getElementById("authTeam").value; // ✅ 소속팀 가져오기
+  const emailInput = document.getElementById("authEmail");
+  const passwordInput = document.getElementById("authPassword");
+  const nameInput = document.getElementById("authName");
+  const teamInput = document.getElementById("authTeam"); // 있을 수도 있고 없을 수도 있음
+
+  if (!emailInput || !passwordInput || !nameInput) {
+    alert("필수 입력값이 누락되었습니다.");
+    return;
+  }
+
+  const email = emailInput.value;
+  const password = passwordInput.value;
+  const name = nameInput.value;
+  const team = teamInput ? teamInput.value : ""; // 입력창 없으면 빈 값
 
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     
-    // ✅ Firestore에 소속팀 포함하여 저장
     await setDoc(doc(db, "users", cred.user.uid), {
       email,
       name,
-      team // ✅ 소속팀 저장
+      team
     });
 
     await sendEmailVerification(cred.user);
@@ -36,6 +45,7 @@ window.handleSignup = async function () {
     alert("회원가입 실패: " + error.message);
   }
 };
+
 
 
 // ✅ 로그인
