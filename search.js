@@ -40,17 +40,19 @@ input.addEventListener("input", async () => {
   
   
   const userSnap = await getDocs(collection(db, "users"));
-  const shownUids = new Set();
+  const shownEmails = new Set();
 
-  userSnap.forEach(userDoc => {
-    const data = userDoc.data();
-    const uid = userDoc.id;
+userSnap.forEach(userDoc => {
+  const data = userDoc.data();
+  const uid = userDoc.id;
 
-    if (uid === currentUid) return;
-    if (!data.name?.toLowerCase().includes(keyword)) return;
-    if (shownUids.has(uid)) return;
-    shownUids.add(uid);
+  if (uid === currentUid) return;
+  if (!data.name?.toLowerCase().includes(keyword)) return;
 
+  // 🔒 이메일 중복 방지
+  if (!data.email || shownEmails.has(data.email)) return;
+  shownEmails.add(data.email);
+  
     const isFriend = friendSet.has(uid);
     const isRequested = requestedSet.has(uid);
     const emailText = isFriend ? data.email : "(비공개)";
